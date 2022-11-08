@@ -28,5 +28,5 @@ defined('MOODLE_INTERNAL') || die();
 $string['pluginname'] = 'Exam Proctoring';
 $string['examproctoring:send_evidence'] = 'Send evidence files';
 $string['examproctoring:get_evidence'] = 'Read evidence files';
-$string['examproctoring:view_report'] = 'View Proctoring report';
+$string['examproctoring:view_report'] = 'View proctoring report';
 $string['examproctoring:delete_evidence'] = 'Delete evidence files';
