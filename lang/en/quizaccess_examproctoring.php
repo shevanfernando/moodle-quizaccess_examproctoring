@@ -30,3 +30,6 @@ $string['examproctoring:send_evidence'] = 'Send evidence files';
 $string['examproctoring:get_evidence'] = 'Read evidence files';
 $string['examproctoring:view_report'] = 'View proctoring report';
 $string['examproctoring:delete_evidence'] = 'Delete evidence files';
+$string['settings:storage_method'] = 'Data storage method';
+$string['settings:storage_method_description'] = 'Proctored data storage method. (Values: Local/ AWS(S3))';
+

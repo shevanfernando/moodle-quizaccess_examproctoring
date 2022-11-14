@@ -28,6 +28,10 @@ defined('MOODLE_INTERNAL') || die();
 if ($hassiteconfig) {
     // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedIf
     if ($ADMIN->fulltree) {
-        // TODO: Define the plugin settings page - {@link https://docs.moodle.org/dev/Admin_settings}.
+
+        // Storage Choices
+        $CHOICES = array("Local" => "Local", "AWS(S3)" => "AWS(S3)");
+
+        $settings->add(new admin_setting_configselect('quizaccess_examproctoring/storagemethod', get_string('settings:storage_method', 'quizaccess_examproctoring'), get_string('settings:storage_method_description', 'quizaccess_examproctoring'), $CHOICES["Local"], $CHOICES));
     }
 }
