@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-function xmldb_qtype_myqtype_upgrade($oldversion)
+function xmldb_quizaccess_examproctoring_upgrade($oldversion)
 {
     global $DB;
 
