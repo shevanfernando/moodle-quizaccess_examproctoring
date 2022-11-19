@@ -32,4 +32,12 @@ $string['examproctoring:view_report'] = 'View proctoring report';
 $string['examproctoring:delete_evidence'] = 'Delete evidence files';
 $string['settings:storage_method'] = 'Data storage method';
 $string['settings:storage_method_description'] = 'Proctored data storage method. (Values: Local/ AWS(S3))';
+$string['settings:local_storage_path'] = 'Local storage folder path';
+$string['settings:local_storage_path_description'] = 'File path for store proctored data in locally.';
+$string['settings:aws_region'] = 'AWS S3 region';
+$string['settings:aws_region_description'] = 'AWS region for S3 bucket.';
+$string['settings:aws_access_id'] = 'AWS access key id';
+$string['settings:aws_access_id_description'] = 'AWS access key id for S3 bucket.';
+$string['settings:aws_access_key'] = 'AWS secret access key';
+$string['settings:aws_access_key_description'] = 'AWS secret access key for S3 bucket.';
 
