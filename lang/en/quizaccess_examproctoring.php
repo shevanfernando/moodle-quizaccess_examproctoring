@@ -40,4 +40,13 @@ $string['settings:aws_access_id'] = 'AWS access key id';
 $string['settings:aws_access_id_description'] = 'AWS access key id for S3 bucket.';
 $string['settings:aws_access_key'] = 'AWS secret access key';
 $string['settings:aws_access_key_description'] = 'AWS secret access key for S3 bucket.';
+$string['openwebcam'] = 'Allow your webcam to continue';
+$string['proctoringstatement'] = 'This exam requires webcam validation process. You must allow the webcam and it will take some random pictures during the exam. <br />(Please allow your web browser to access your camera).';
+$string['camhtml'] = '<div class="camera"> <video id="video">Video stream not available.</video></div> <canvas id="canvas" style="display:none;"> </canvas> <img style="display:none;" id="photo" alt="The screen capture will appear in this box."/>';
+$string['proctoringlabel'] = 'I agree with the validation process.';
+$string['youmustagree'] = 'You must agree to validate your identity before continue.';
+$string['webcamproctoringrequired'] = 'Webcam identity validation';
+$string['screenproctoringrequired'] = 'Screen identity validation';
+$string['notrequired'] = 'not required';
+$string['proctoringrequiredoption'] = 'must be accepted before beginning an attempt';
 
