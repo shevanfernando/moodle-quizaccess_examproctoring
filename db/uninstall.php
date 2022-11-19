@@ -21,6 +21,11 @@
  * @copyright  2022 Shevan Fernando <w.k.b.s.t.fernando@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+/**
+ * Custom uninstallation procedure
+ * @return bool: only returns true
+ */
 function xmldb_quizaccess_examproctoring_uninstall()
 {
     return true;
