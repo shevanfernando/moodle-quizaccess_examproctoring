@@ -21,7 +21,7 @@
  * @copyright  2022 Shevan Fernando <w.k.b.s.t.fernando@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class rule extends quiz_access_rule_base
+class quizaccess_examproctoring extends quiz_access_rule_base
 {
     /**
      * Information, such as might be shown on the quiz view page, relating to this restriction.
@@ -79,24 +79,22 @@ class rule extends quiz_access_rule_base
     public static function save_settings($quiz)
     {
         global $DB;
-        if (empty($quiz->webcamproctoringrequired)) {
+        $is_webcam_proctoring_required = $quiz->webcamproctoringrequired;
+        $is_screen_proctoring_required = $quiz->screenproctoringrequired;
+        if (empty($is_webcam_proctoring_required) && empty($is_screen_proctoring_required)) {
             $DB->delete_records('quizaccess_examproctoring', array('quizid' => $quiz->id));
         } else {
             if (!$DB->record_exists('quizaccess_examproctoring', array('quizid' => $quiz->id))) {
                 $record = new stdClass();
                 $record->quizid = $quiz->id;
-                $record->webcamproctoringrequired = $quiz->webcamproctoringrequired;
+                $record->webcamproctoringrequired = $is_webcam_proctoring_required;
+                $record->screenproctoringrequired = $is_screen_proctoring_required;
                 $DB->insert_record('quizaccess_examproctoring', $record);
-            }
-        }
-        if (empty($quiz->screenproctoringrequired)) {
-            $DB->delete_records('quizaccess_examproctoring', array('quizid' => $quiz->id));
-        } else {
-            if (!$DB->record_exists('quizaccess_examproctoring', array('quizid' => $quiz->id))) {
-                $record = new stdClass();
-                $record->quizid = $quiz->id;
-                $record->screenproctoringrequired = $quiz->screenproctoringrequired;
-                $DB->insert_record('quizaccess_examproctoring', $record);
+            } else {
+                $record = $DB->get_record('quizaccess_examproctoring', array('quizid' => $quiz->id));
+                $record->webcamproctoringrequired = $is_webcam_proctoring_required;
+                $record->screenproctoringrequired = $is_screen_proctoring_required;
+                $DB->update_record('quizaccess_examproctoring', $record);
             }
         }
     }
@@ -135,14 +133,13 @@ class rule extends quiz_access_rule_base
      *        used named placeholders, and the placeholder names should start with the
      *        plugin name, to avoid collisions.
      */
-//    public static function get_settings_sql($quizid)
-//    {
-//        // TODO: Check this and added screenproctoringrequired
-//        return array(
-//            'webcamproctoringrequired',
-//            'LEFT JOIN {quizaccess_examproctoring} examproctoring ON examproctoring.quizid = quiz.id',
-//            array());
-//    }
+    public static function get_settings_sql($quizid)
+    {
+        return array(
+            'examproctoring.webcamproctoringrequired,' . 'examproctoring.screenproctoringrequired',
+            'LEFT JOIN {quizaccess_examproctoring} examproctoring ON examproctoring.quizid = quiz.id',
+            array());
+    }
 
     /**
      * Check is preflight check is required.
@@ -150,7 +147,7 @@ class rule extends quiz_access_rule_base
      * @param mixed $attemptid
      * @return bool
      */
-    public function is_preflight_check_required($attemptid)
+    public function is_preflight_check_required($attemptid): bool
     {
         return empty($attemptid);
     }
@@ -199,19 +196,19 @@ class rule extends quiz_access_rule_base
      *         (may be '' if no message is appropriate).
      * @throws coding_exception
      */
-//    public function description()
-//    {
-//        global $PAGE;
-//        // TODO: Check this and get_download_config_button function
-////        $PAGE->requires->js_call_amd('quizaccess_examproctoring/proctoring', 'init', array());
-////        $messages = [get_string('proctoringheader', 'quizaccess_examproctoring')];
-////
-////        $messages[] = $this->get_download_config_button();
-////
-////        return $messages;
+    public function description()
+    {
+        global $PAGE;
+        // TODO: Check this and get_download_config_button function
+//        $PAGE->requires->js_call_amd('quizaccess_examproctoring/proctoring', 'init', array());
+//        $messages = [get_string('proctoringheader', 'quizaccess_examproctoring')];
 //
-//        return "<h1>This is Exam proctoring Plugin!</h1>";
-//    }
+//        $messages[] = $this->get_download_config_button();
+//
+//        return $messages;
+
+        return "<h1>This is Exam proctoring Plugin!</h1>";
+    }
 
     /**
      * Get a button to view the Proctoring report.
@@ -219,20 +216,20 @@ class rule extends quiz_access_rule_base
      * @return string A link to view report
      * @throws coding_exception
      */
-//    private function get_download_config_button(): string
-//    {
-//        global $OUTPUT, $USER;
+    private function get_download_config_button(): string
+    {
+        global $OUTPUT, $USER;
+
+//        $context = context_module::instance($this->quiz->cmid, MUST_EXIST);
+//        if (has_capability('quizaccess/proctoring:viewreport', $context, $USER->id)) {
+//            $httplink = \quizaccess_examproctoring\link_generator::get_link($this->quiz->course, $this->quiz->cmid, false, is_https());
 //
-////        $context = context_module::instance($this->quiz->cmid, MUST_EXIST);
-////        if (has_capability('quizaccess/proctoring:viewreport', $context, $USER->id)) {
-////            $httplink = \quizaccess_examproctoring\link_generator::get_link($this->quiz->course, $this->quiz->cmid, false, is_https());
-////
-////            return $OUTPUT->single_button($httplink, get_string('picturesreport', 'quizaccess_examproctoring'), 'get');
-////        } else {
-////            return '';
-////        }
-//        return "";
-//    }
+//            return $OUTPUT->single_button($httplink, get_string('picturesreport', 'quizaccess_examproctoring'), 'get');
+//        } else {
+//            return '';
+//        }
+        return "";
+    }
 
     /**
      * Sets up the attempt (review or summary) page with any special extra
