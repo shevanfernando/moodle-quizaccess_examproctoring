@@ -32,7 +32,7 @@ if ($hassiteconfig) {
 
         $settings->add(new admin_setting_configselect("quizaccess_examproctoring/storagemethod", get_string("settings:storage_method", "quizaccess_examproctoring"), get_string("settings:storage_method_description", "quizaccess_examproctoring"), $CHOICES["Local"], $CHOICES));
 
-        $settings->add(new admin_setting_configtext("quizaccess_examproctoring/localpath", get_string("settings:local_storage_path", "quizaccess_examproctoring"), get_string("settings:local_storage_path_description", "quizaccess_examproctoring"), $value, PARAM_PATH));
+        $settings->add(new admin_setting_configtext("quizaccess_examproctoring/localpath", get_string("settings:local_storage_path", "quizaccess_examproctoring"), get_string("settings:local_storage_path_description", "quizaccess_examproctoring"), $value, PARAM_TEXT));
 
         $settings->add(new admin_setting_configtext("quizaccess_examproctoring/awsregion", get_string("settings:aws_region", "quizaccess_examproctoring"), get_string("settings:aws_region_description", "quizaccess_examproctoring"), $value, PARAM_TEXT));
 
