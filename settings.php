@@ -26,6 +26,8 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
+    $PAGE->requires->js_call_amd('quizaccess_examproctoring/dynamic_settings', 'init');
+
     if ($ADMIN->fulltree) {
         // Storage Choices
         $CHOICES = array("Local" => "Local", "AWS(S3)" => "AWS(S3)");
@@ -39,7 +41,5 @@ if ($hassiteconfig) {
         $settings->add(new admin_setting_configtext("quizaccess_examproctoring/awsaccessid", get_string("settings:aws_access_id", "quizaccess_examproctoring"), get_string("settings:aws_access_id_description", "quizaccess_examproctoring"), $value, PARAM_TEXT));
 
         $settings->add(new admin_setting_configtext("quizaccess_examproctoring/awsaccesskey", get_string("settings:aws_access_key", "quizaccess_examproctoring"), get_string("settings:aws_access_key_description", "quizaccess_examproctoring"), $value, PARAM_TEXT));
-
-        $PAGE->requires->js_call_amd('quizaccess_examproctoring/dynamic_settings', 'init');
     }
 }

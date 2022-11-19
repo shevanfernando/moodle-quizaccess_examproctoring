@@ -15,14 +15,11 @@ const settings = (getValue) => {
 };
 
 export const init = () => {
-    const pathName = window.location.href;
-    if (pathName.includes("/admin/settings.php?section=modsettingsquizcatexamproctoring")) {
-        // Current selected value
-        settings($("#id_s_quizaccess_examproctoring_storagemethod").val());
-        // Event trigger when dropdown value change
-        $("#id_s_quizaccess_examproctoring_storagemethod").change((e) => {
-            const $this = $(e.currentTarget);
-            settings($this.val());
-        });
-    }
+    // Current selected value
+    settings($("#id_s_quizaccess_examproctoring_storagemethod").val());
+    // Event trigger when dropdown value change
+    $("#id_s_quizaccess_examproctoring_storagemethod").change((e) => {
+        const $this = $(e.currentTarget);
+        settings($this.val());
+    });
 };
