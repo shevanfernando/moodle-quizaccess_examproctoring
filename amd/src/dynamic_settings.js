@@ -2,12 +2,10 @@ import $ from 'jquery';
 
 const settings = (getValue) => {
     if (getValue === "AWS(S3)") {
-        $("#admin-localpath").hide();
         $("#admin-awsregion").show();
         $("#admin-awsaccessid").show();
         $("#admin-awsaccesskey").show();
     } else {
-        $("#admin-localpath").show();
         $("#admin-awsregion").hide();
         $("#admin-awsaccessid").hide();
         $("#admin-awsaccesskey").hide();
