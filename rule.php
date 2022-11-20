@@ -71,7 +71,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
             ));
         $mform->addHelpButton('screenproctoringrequired', 'screenproctoringrequired', 'quizaccess_exproctor');
         $mform->addElement('select', 'proctoringmethod',
-            get_string('setting:proctoringmethod', 'quizaccess_exproctor'),
+            get_string('setting:proctoring_method', 'quizaccess_exproctor'),
             array(
                 0 => get_string('setting:proctoring_method_one', 'quizaccess_exproctor'),
                 1 => get_string('setting:proctoring_method_sec', 'quizaccess_exproctor'),
@@ -79,10 +79,10 @@ class quizaccess_exproctor extends quiz_access_rule_base
                 3 => get_string('setting:proctoring_method_four', 'quizaccess_exproctor'),
             ));
         $mform->addHelpButton('proctoringmethod', 'proctoringmethod', 'quizaccess_exproctor');
-        $mform->addElement('text', 'screenshotdelay', get_string('setting:screen_shot_delay', 'quizaccess_exproctor'));
+        $mform->addElement('text', 'screenshotdelay', get_string('setting:screenshot_delay', 'quizaccess_exproctor'));
         $mform->setDefault('screenshotdelay', 30000);
         $mform->addHelpButton('screenshotdelay', 'screenshotdelay', 'quizaccess_exproctor');
-        $mform->addElement('text', 'screenshotwidth', get_string('setting:screen_shot_width', 'quizaccess_exproctor'));
+        $mform->addElement('text', 'screenshotwidth', get_string('setting:screenshot_width', 'quizaccess_exproctor'));
         $mform->setDefault('screenshotwidth', 230);
         $mform->addHelpButton('screenshotwidth', 'screenshotwidth', 'quizaccess_exproctor');
     }
@@ -100,6 +100,9 @@ class quizaccess_exproctor extends quiz_access_rule_base
         global $DB;
         $is_webcam_proctoring_required = $quiz->webcamproctoringrequired;
         $is_screen_proctoring_required = $quiz->screenproctoringrequired;
+        $proctoring_method = $quiz->proctoringmethod;
+        $screenshot_delay = $quiz->screenshotdelay;
+        $screenshot_width = $quiz->screenshotwidth;
         if (empty($is_webcam_proctoring_required) && empty($is_screen_proctoring_required)) {
             $DB->delete_records('quizaccess_exproctor', array('quizid' => $quiz->id));
         } else {
@@ -108,11 +111,17 @@ class quizaccess_exproctor extends quiz_access_rule_base
                 $record->quizid = $quiz->id;
                 $record->webcamproctoringrequired = $is_webcam_proctoring_required;
                 $record->screenproctoringrequired = $is_screen_proctoring_required;
+                $record->proctoringmethod = $proctoring_method;
+                $record->screenshotdelay = $screenshot_delay;
+                $record->screenshotwidth = $screenshot_width;
                 $DB->insert_record('quizaccess_exproctor', $record);
             } else {
                 $record = $DB->get_record('quizaccess_exproctor', array('quizid' => $quiz->id));
                 $record->webcamproctoringrequired = $is_webcam_proctoring_required;
                 $record->screenproctoringrequired = $is_screen_proctoring_required;
+                $record->proctoringmethod = $proctoring_method;
+                $record->screenshotdelay = $screenshot_delay;
+                $record->screenshotwidth = $screenshot_width;
                 $DB->update_record('quizaccess_exproctor', $record);
             }
         }
