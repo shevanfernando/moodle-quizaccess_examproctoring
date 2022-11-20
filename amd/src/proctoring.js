@@ -37,33 +37,34 @@ export const webcam_proctoring = (props) => {
     };
 
     const takepicture = () => {
-        const context = canvas.getContext("2d");
-        if (width && height) {
-            canvas.width = width;
-            canvas.height = height;
-            context.drawImage(video, 0, 0, width, height);
+        if (props.is_quiz_started) {
+            const context = canvas.getContext("2d");
+            if (width && height) {
+                canvas.width = width;
+                canvas.height = height;
+                context.drawImage(video, 0, 0, width, height);
 
-            const data = canvas.toDataURL("image/png");
-            photo.setAttribute("src", data);
+                const data = canvas.toDataURL("image/png");
+                photo.setAttribute("src", data);
 
-            const api_function = 'quizaccess_exproctor_send_webcam_shot';
-            const params = {
-                'courseid': props.courseid,
-                'webcamshotid': props.id,
-                'quizid': props.quizid,
-                'webcampicture': data,
-            };
+                const api_function = 'quizaccess_exproctor_send_webcam_shot';
+                const params = {
+                    'courseid': props.courseid,
+                    'webcamshotid': props.id,
+                    'quizid': props.quizid,
+                    'webcampicture': data,
+                };
 
-            Ajax.call([{methodname: api_function, args: params}])[0].done((data) => {
-                if (data.warnings.length !== 0) {
-                    if (video) {
-                        Notification.addNotification({
-                            message: 'Something went wrong during taking the image.', type: 'error'
-                        });
+                Ajax.call([{methodname: api_function, args: params}])[0].done((data) => {
+                    if (data.warnings.length !== 0) {
+                        if (video) {
+                            Notification.addNotification({
+                                message: 'Something went wrong during taking the image.', type: 'error'
+                            });
+                        }
                     }
-                }
-            }).fail(Notification.exception);
-
+                }).fail(Notification.exception);
+            }
         } else {
             clearphoto();
         }
@@ -85,8 +86,9 @@ export const webcam_proctoring = (props) => {
             },
             false
         );
-
-        setTimeout(takepicture, firstcalldelay);
-        setInterval(takepicture, takepicturedelay);
+        if (props.is_quiz_started) {
+            setTimeout(takepicture, firstcalldelay);
+            setInterval(takepicture, takepicturedelay);
+        }
     }
 };
