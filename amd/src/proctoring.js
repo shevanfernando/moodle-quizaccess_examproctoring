@@ -2,7 +2,7 @@ import $ from 'jquery';
 import Ajax from 'core/ajax';
 
 export const webcam_proctoring = (props) => {
-    const width = 320; // We will scale the photo width to this
+    let width = 350; // We will scale the photo width to this
     let height = 0; // This will be computed based on the input stream
 
     let streaming = false;
@@ -10,12 +10,14 @@ export const webcam_proctoring = (props) => {
     const firstcalldelay = 3000; // 3 seconds after the page load
     const takepicturedelay = 30000; // 30 seconds
 
+    if (props.is_quiz_started) {
+        // eslint-disable-next-line max-len
+        $('#mod_quiz_navblock').append('<div class="card-body p-3"><h3 class="no text-left">Webcam</h3> <br/>' + '<video id="video">Video stream not available.</video><canvas id="canvas" style="display:none;"></canvas>' + '<div class="output" style="display:none;">' + '<img id="photo" alt="The picture will appear in this box."/></div></div>');
+    }
+
     let video = document.getElementById('video');
     let canvas = document.getElementById('canvas');
     let photo = document.getElementById('photo');
-
-    // eslint-disable-next-line max-len
-    $('#mod_quiz_navblock').append('<div class="card-body p-3"><h3 class="no text-left">Webcam</h3> <br/>' + '<video id="video">Video stream not available.</video><canvas id="canvas" style="display:none;"></canvas>' + '<div class="output" style="display:none;">' + '<img id="photo" alt="The picture will appear in this box."/></div></div>');
 
     navigator.mediaDevices
         .getUserMedia({video: true, audio: false})
@@ -75,7 +77,14 @@ export const webcam_proctoring = (props) => {
             "canplay",
             () => {
                 if (!streaming) {
-                    height = (video.videoHeight / video.videoWidth) * width;
+                    if (props.is_quiz_started) {
+                        width = 270;
+                    }
+                    height = video.videoHeight / (video.videoWidth / width);
+
+                    if (isNaN(height)) {
+                        height = width / (4 / 3);
+                    }
 
                     video.setAttribute("width", width);
                     video.setAttribute("height", height);
@@ -90,5 +99,7 @@ export const webcam_proctoring = (props) => {
             setTimeout(takepicture, firstcalldelay);
             setInterval(takepicture, takepicturedelay);
         }
+
+        window.console.log(props);
     }
 };
