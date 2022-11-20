@@ -16,9 +16,9 @@ const settings = (getValue) => {
 
 export const init = () => {
     // Current selected value
-    settings($("#id_s_quizaccess_examproctoring_storagemethod").val());
+    settings($("#id_s_quizaccess_exproctor_storagemethod").val());
     // Event trigger when dropdown value change
-    $("#id_s_quizaccess_examproctoring_storagemethod").change((e) => {
+    $("#id_s_quizaccess_exproctor_storagemethod").change((e) => {
         const $this = $(e.currentTarget);
         settings($this.val());
     });
