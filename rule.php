@@ -21,6 +21,11 @@
  * @copyright  2022 Shevan Fernando <w.k.b.s.t.fernando@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
+
+require_once($CFG->dirroot . '/mod/quiz/accessrule/accessrulebase.php');
+
 class quizaccess_exproctor extends quiz_access_rule_base
 {
     /**
@@ -311,9 +316,9 @@ class quizaccess_exproctor extends quiz_access_rule_base
         $context = context_module::instance($this->quiz->cmid, MUST_EXIST);
         if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id)) {
             # create a report.php
-//            $httplink = \quizaccess_exproctor\link_generator::get_link($this->quiz->course, $this->quiz->cmid, false, is_https());
+            $httplink = \quizaccess_exproctor\link_generator::get_link($this->quiz->course, $this->quiz->cmid, false, is_https());
 
-            return $OUTPUT->single_button('www.google.lk', get_string('picturesreport', 'quizaccess_exproctor'), 'get');
+            return $OUTPUT->single_button($httplink, get_string('picturesreport', 'quizaccess_exproctor'), 'get');
         }
         return '';
     }

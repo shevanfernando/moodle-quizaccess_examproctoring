@@ -33,7 +33,7 @@ class link_generator
     public static function get_link(string $courseid, string $cmid, $proctoring = false, $secure = true): string
     {
         // Check of course module exists.
-//        get_coursemodule_from_id('quiz', $cmid, 0, false, MUST_EXIST);
+        get_coursemodule_from_id('quiz', $cmid, 0, false, MUST_EXIST);
 
         $url = new moodle_url('/mod/quiz/accessrule/exproctor/report.php?courseid=' . $courseid . '&cmid=' . $cmid);
         if ($proctoring) {
