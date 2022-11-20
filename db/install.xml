@@ -14,6 +14,12 @@
                        COMMENT="Boolean, if true, then the quiz required webcam validation."/>
                 <FIELD NAME="screenproctoringrequired" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
                        COMMENT="Boolean, if true, then the quiz required screen validation."/>
+                <FIELD NAME="proctoringmethod" TYPE="int" LENGTH="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+                       COMMENT="Exam proctoring method."/>
+                <FIELD NAME="screenshotdelay" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="30000" SEQUENCE="false"
+                       COMMENT="The delay between screenshots in seconds."/>
+                <FIELD NAME="screenshotwidth" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="230" SEQUENCE="false"
+                       COMMENT="The width of the screenshot image in px."/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
