@@ -2,13 +2,26 @@ import $ from 'jquery';
 import Ajax from 'core/ajax';
 
 export const webcam_proctoring = (props) => {
-    let width = 350; // We will scale the photo width to this
+    let isCameraAllowed = false;
+
+    $(() => {
+        $('#id_submitbutton').prop("disabled", true);
+        $('#id_proctoring').on('change', function() {
+            if (this.checked && isCameraAllowed) {
+                $('#id_submitbutton').prop("disabled", false);
+            } else {
+                $('#id_submitbutton').prop("disabled", true);
+            }
+        });
+    });
+
+    let width = props.image_width; // We will scale the photo width to this
     let height = 0; // This will be computed based on the input stream
 
     let streaming = false;
 
     // const firstcalldelay = 3000; // 3 seconds after the page load
-    const takepicturedelay = 30000; // 30 seconds
+    const takepicturedelay = props.frequency;
 
     if (props.is_quiz_started) {
         // eslint-disable-next-line max-len
@@ -24,6 +37,7 @@ export const webcam_proctoring = (props) => {
         .then((stream) => {
             video.srcObject = stream;
             video.play();
+            isCameraAllowed = true;
         })
         .catch((err) => {
             window.console.error(`An error occurred: ${err}`);
@@ -57,7 +71,17 @@ export const webcam_proctoring = (props) => {
                     'webcampicture': data,
                 };
 
-                Ajax.call([{methodname: api_function, args: params}])[0].done((data) => {
+                const request = {
+                    methodname: api_function,
+                    args: params
+                };
+
+                window.console.log(params);
+
+                // window.console.log(Ajax.call([request]));
+
+                Ajax.call([request])[0].done((data) => {
+                    window.console.log(data);
                     if (data.warnings.length !== 0) {
                         if (video) {
                             Notification.addNotification({
