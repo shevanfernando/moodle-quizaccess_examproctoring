@@ -83,5 +83,18 @@ function xmldb_quizaccess_exproctor_upgrade($oldversion)
         upgrade_plugin_savepoint(true, 2022112001, 'quizaccess', 'exproctor');
     }
 
+    if ($oldversion < 2022112002) {
+
+        // Changing the default of field screenshotdelay on table quizaccess_exproctor to 3.
+        $table = new xmldb_table('quizaccess_exproctor');
+        $field = new xmldb_field('screenshotdelay', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL, null, '3', 'proctoringmethod');
+
+        // Launch change of default for field screenshotdelay.
+        $dbman->change_field_default($table, $field);
+
+        // Exproctor savepoint reached.
+        upgrade_plugin_savepoint(true, 2022112002, 'quizaccess', 'exproctor');
+    }
+
     return true;
 }
