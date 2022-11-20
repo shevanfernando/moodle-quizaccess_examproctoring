@@ -348,8 +348,6 @@ class quizaccess_exproctor extends quiz_access_rule_base
             $record->webcampicture = '';
             $record->status = $attempt;
             $record->timemodified = time();
-            echo "<h1>First</h1>";
-            var_dump($record);
             $record->id = $DB->insert_record('quizaccess_exproctor_wb_logs', $record, true);
 
             //////// Get Image Frequency and Image Width ////////
@@ -368,7 +366,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
             $record->image_width = $image_width;
 
             $record->is_quiz_started = true;
-            var_dump($record);
+//            var_dump($record);
 //            die();
             $page->requires->js_call_amd('quizaccess_exproctor/proctoring', 'webcam_proctoring', array($record));
         }
