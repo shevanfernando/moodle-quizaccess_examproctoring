@@ -164,7 +164,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
     public static function get_settings_sql($quizid): array
     {
         return array(
-            'exproctor.webcamproctoringrequired,' . 'exproctor.screenproctoringrequired',
+            'exproctor.webcamproctoringrequired,' . 'exproctor.screenproctoringrequired,' . 'exproctor.proctoringmethod,' . 'exproctor.screenshotdelay,' . 'exproctor.screenshotwidth',
             'LEFT JOIN {quizaccess_exproctor} exproctor ON exproctor.quizid = quiz.id',
             array());
     }
