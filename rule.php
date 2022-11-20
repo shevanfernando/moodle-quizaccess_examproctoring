@@ -229,6 +229,9 @@ class quizaccess_exproctor extends quiz_access_rule_base
         $response['quizid'] = $this->quiz->id;
         $response['screenproctoringrequired'] = $this->quiz->screenproctoringrequired;
         $response['webcamproctoringrequired'] = $this->quiz->webcamproctoringrequired;
+        $response['proctoringmethod'] = $this->quiz->proctoringmethod;
+        $response['screenshotdelay'] = $this->quiz->screenshotdelay;
+        $response['screenshotwidth'] = $this->quiz->screenshotwidth;
 
         return $response;
     }
@@ -325,6 +328,8 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     public function setup_attempt_page($page)
     {
+        $data = $this->get_quiz_details();
+
         $cmid = optional_param('cmid', '', PARAM_INT);
         $attempt = optional_param('attempt', '', PARAM_INT);
 
@@ -348,24 +353,15 @@ class quizaccess_exproctor extends quiz_access_rule_base
             $record->id = $DB->insert_record('quizaccess_exproctor_wb_logs', $record, true);
 
             //////// Get Image Frequency and Image Width ////////
-            $imagefrequencysql = "SELECT * FROM {config_plugins} WHERE plugin = 'quizaccess_exproctor' AND name = 'autoreconfigurefrequency'";
-            $frequencydata = $DB->get_recordset_sql($imagefrequencysql);
 
-            $frequency = 3 * 1000;
-            if (count($frequencydata) > 0) {
-                foreach ($frequencydata as $row) {
-                    $frequency = (int)$row->value * 1000;
-                }
+            $frequency = ((int)$data["screenshotdelay"]) * 1000;
+            if ($screenshotdelay == 0) {
+                $frequency = 3 * 1000;
             }
 
-            $imagesizesql = "SELECT * FROM {config_plugins} WHERE plugin = 'quizaccess_exproctor' AND name = 'autoreconfigureimagewidth'";
-            $imagesizedata = $DB->get_recordset_sql($imagesizesql);
-
-            $image_width = 230;
-            if (count($imagesizedata) > 0) {
-                foreach ($imagesizedata as $row) {
-                    $image_width = $row->value;
-                }
+            $image_width = (int)$data["screenshotwidth"];
+            if ($image_width == 0) {
+                $image_width = 230;
             }
 
             $record->frequency = $frequency;
@@ -374,7 +370,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
             $record->is_quiz_started = true;
             var_dump($record);
 //            die();
-//            $page->requires->js_call_amd('quizaccess_exproctor/proctoring', 'webcam_proctoring', array($record));
+            $page->requires->js_call_amd('quizaccess_exproctor/proctoring', 'webcam_proctoring', array($record));
         }
     }
 }
