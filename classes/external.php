@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * External class for quizaccess_examproctoring.
+ * External class for quizaccess_exproctor.
  *
- * @package    quizaccess_examproctoring
+ * @package    quizaccess_exproctor
  * @copyright  2022 Shevan Fernando <w.k.b.s.t.fernando@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -48,7 +48,7 @@ class quizaccess_examproctoring_external extends external_api
 
         $record = new stdClass();
         $record->filearea = 'picture';
-        $record->component = 'quizaccess_examproctoring';
+        $record->component = 'quizaccess_exproctor';
         $record->filepath = '';
         $record->itemid = $webcamshotid;
         $record->license = '';
@@ -72,7 +72,7 @@ class quizaccess_examproctoring_external extends external_api
 
         $file = $fs->create_file_from_string($record, $data);
 
-        $filesql = 'SELECT * FROM {files} WHERE userid IN (' . $USER->id . ') AND contextid IN (' . $context->id . ') AND mimetype = \'image/png\' AND component = \'quizaccess_examproctoring\' AND filearea = \'picture\' ORDER BY id DESC LIMIT 1';
+        $filesql = 'SELECT * FROM {files} WHERE userid IN (' . $USER->id . ') AND contextid IN (' . $context->id . ') AND mimetype = \'image/png\' AND component = \'quizaccess_exproctor\' AND filearea = \'picture\' ORDER BY id DESC LIMIT 1';
 
         $usersfile = $DB->get_records_sql($filesql);
 
@@ -91,7 +91,7 @@ class quizaccess_examproctoring_external extends external_api
             false
         );
 
-        $camshot = $DB->get_record('quizaccess_examproctoring_webcam_logs', array('id' => $webcamshotid));
+        $camshot = $DB->get_record('quizaccess_exproctor_wb_logs', array('id' => $webcamshotid));
 
         $record = new stdClass();
         $record->courseid = $courseid;
@@ -101,7 +101,7 @@ class quizaccess_examproctoring_external extends external_api
         $record->status = $camshot->status;
         $record->fileid = $file_id;
         $record->timemodified = time();
-        $screenshotid = $DB->insert_record('quizaccess_examproctoring_webcam_logs', $record, true);
+        $screenshotid = $DB->insert_record('quizaccess_exproctor_wb_logs', $record, true);
 
         $result = array();
         $result['webcamshotid'] = $webcamshotid;
@@ -220,9 +220,9 @@ class quizaccess_examproctoring_external extends external_api
 
         $warnings = array();
         if ($params['quizid']) {
-            $camshots = $DB->get_records('quizaccess_examproctoring_webcam_logs', $params, 'id DESC');
+            $camshots = $DB->get_records('quizaccess_exproctor_wb_logs', $params, 'id DESC');
         } else {
-            $camshots = $DB->get_records('quizaccess_examproctoring_webcam_logs',
+            $camshots = $DB->get_records('quizaccess_exproctor_wb_logs',
                 array('courseid' => $courseid, 'userid' => $userid), 'id DESC');
         }
 
