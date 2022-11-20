@@ -355,7 +355,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
             //////// Get Image Frequency and Image Width ////////
 
             $frequency = ((int)$data["screenshotdelay"]) * 1000;
-            if ($screenshotdelay == 0) {
+            if ($frequency == 0) {
                 $frequency = 3 * 1000;
             }
 
