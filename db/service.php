@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Services for the quizaccess_examproctoring plugin.
+ * Services for the quizaccess_exproctor plugin.
  *
- * @package    quizaccess_examproctoring
+ * @package    quizaccess_exproctor
  * @copyright  2022 Shevan Fernando <w.k.b.s.t.fernando@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -25,22 +25,22 @@
 defined("MOODLE_INTERNAL") || die;
 
 $functions = array(
-    'quizaccess_examproctoring_send_webcam_shot' => array(
-        'classname' => 'quizaccess_examproctoring_external',
+    'quizaccess_exproctor_send_webcam_shot' => array(
+        'classname' => 'quizaccess_exproctor_external',
         'methodname' => 'send_webcam_shot',
         'description' => 'Send a webcam snapshot on the given session',
         'type' => 'write',
         'ajax' => true,
-        'capabilities' => 'quizaccess/examproctoring:send_evidence',
+        'capabilities' => 'quizaccess/exproctor:send_evidence',
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),
-    'quizaccess_examproctoring_get_webcam_shot' => array(
-        'classname' => 'quizaccess_examproctoring_external',
+    'quizaccess_exproctor_get_webcam_shot' => array(
+        'classname' => 'quizaccess_exproctor_external',
         'methodname' => 'get_webcam_shot',
         'description' => 'Get list of webcam snapshot in the given session',
         'type' => 'read',
         'ajax' => true,
-        'capabilities' => 'quizaccess/examproctoring:get_evidence',
+        'capabilities' => 'quizaccess/exproctor:get_evidence',
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     )
 );
