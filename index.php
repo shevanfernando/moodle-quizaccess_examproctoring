@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Implementation of the quizaccess_examproctoring plugin.
+ * Implementation of the quizaccess_exproctor plugin.
  *
- * @package    quizaccess_examproctoring
+ * @package    quizaccess_exproctor
  * @copyright  2022 Shevan Fernando <w.k.b.s.t.fernando@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -29,13 +29,13 @@ global $PAGE;
 
 $context = context_system::instance();
 $PAGE->set_context($context);
-$PAGE->set_url(new moodle_url('/mod/quiz/accessrule/examproctoring/index.php'));
+$PAGE->set_url(new moodle_url('/mod/quiz/accessrule/exproctor/index.php'));
 $PAGE->set_pagelayout('standard');
 $PAGE->set_title($SITE->fullname);
-$PAGE->set_heading(get_string('pluginname', 'quizaccess_examproctoring'));
+$PAGE->set_heading(get_string('pluginname', 'quizaccess_exproctor'));
 
-//$PAGE->requires->js_call_amd('quizaccess_examproctoring/countdowntimer', 'init', array("Shevan", "Fernando"));
-//$PAGE->requires->js_call_amd('quizaccess_examproctoring/countdowntimer', 'init', $params);
+//$PAGE->requires->js_call_amd('quizaccess_exproctor/countdowntimer', 'init', array("Shevan", "Fernando"));
+//$PAGE->requires->js_call_amd('quizaccess_exproctor/countdowntimer', 'init', $params);
 
 echo $OUTPUT->header();
 
@@ -43,6 +43,6 @@ echo $OUTPUT->header();
 //    "message" => "Hello Shevan, Template is rendering!"
 //];
 //
-//echo $OUTPUT->render_from_template('quizaccess_examproctoring/countdowntimer', $params);
+//echo $OUTPUT->render_from_template('quizaccess_exproctor/countdowntimer', $params);
 
 echo $OUTPUT->footer();
