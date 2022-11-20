@@ -52,20 +52,39 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     public static function add_settings_form_fields(mod_quiz_mod_form $quizform, MoodleQuickForm $mform)
     {
+        // this only for debug the code.
+        // TODO: Remove this before push the code into git hub
+        get_string_manager()->reset_caches();
+
         $mform->addElement('select', 'webcamproctoringrequired',
             get_string('webcamproctoringrequired', 'quizaccess_exproctor'),
             array(
-                0 => get_string('notrequired', 'quizaccess_exproctor'),
-                1 => get_string('proctoringrequiredoption', 'quizaccess_exproctor'),
+                0 => get_string('setting:not_required', 'quizaccess_exproctor'),
+                1 => get_string('setting:proctoring_required_option', 'quizaccess_exproctor'),
             ));
         $mform->addHelpButton('webcamproctoringrequired', 'webcamproctoringrequired', 'quizaccess_exproctor');
         $mform->addElement('select', 'screenproctoringrequired',
             get_string('screenproctoringrequired', 'quizaccess_exproctor'),
             array(
-                0 => get_string('notrequired', 'quizaccess_exproctor'),
-                1 => get_string('proctoringrequiredoption', 'quizaccess_exproctor'),
+                0 => get_string('setting:not_required', 'quizaccess_exproctor'),
+                1 => get_string('setting:proctoring_required_option', 'quizaccess_exproctor'),
             ));
         $mform->addHelpButton('screenproctoringrequired', 'screenproctoringrequired', 'quizaccess_exproctor');
+        $mform->addElement('select', 'proctoringmethod',
+            get_string('setting:proctoringmethod', 'quizaccess_exproctor'),
+            array(
+                0 => get_string('setting:proctoring_method_one', 'quizaccess_exproctor'),
+                1 => get_string('setting:proctoring_method_sec', 'quizaccess_exproctor'),
+                2 => get_string('setting:proctoring_method_three', 'quizaccess_exproctor'),
+                3 => get_string('setting:proctoring_method_four', 'quizaccess_exproctor'),
+            ));
+        $mform->addHelpButton('proctoringmethod', 'proctoringmethod', 'quizaccess_exproctor');
+        $mform->addElement('text', 'screenshotdelay', get_string('setting:screen_shot_delay', 'quizaccess_exproctor'));
+        $mform->setDefault('screenshotdelay', 30000);
+        $mform->addHelpButton('screenshotdelay', 'screenshotdelay', 'quizaccess_exproctor');
+        $mform->addElement('text', 'screenshotwidth', get_string('setting:screen_shot_width', 'quizaccess_exproctor'));
+        $mform->setDefault('screenshotwidth', 230);
+        $mform->addHelpButton('screenshotwidth', 'screenshotwidth', 'quizaccess_exproctor');
     }
 
     /**
@@ -166,7 +185,9 @@ class quizaccess_exproctor extends quiz_access_rule_base
         global $PAGE;
         $data = $this->get_quiz_details();
 
-        $PAGE->requires->js_call_amd('quizaccess_exproctor/proctoring', 'init', [$data]);
+        $data["is_quiz_started"] = false;
+
+        $PAGE->requires->js_call_amd('quizaccess_exproctor/proctoring', 'webcam_proctoring', array($data));
 
         // this only for debug the code.
         // TODO: Remove this before push the code into git hub
@@ -194,9 +215,9 @@ class quizaccess_exproctor extends quiz_access_rule_base
     private function get_quiz_details(): array
     {
         $response = [];
-//        var_dump($quizform);
-//        die();
         $response['cmid'] = $this->quiz->cmid;
+        $response['courseid'] = $this->quiz->course;
+        $response['quizid'] = $this->quiz->id;
         $response['screenproctoringrequired'] = $this->quiz->screenproctoringrequired;
         $response['webcamproctoringrequired'] = $this->quiz->webcamproctoringrequired;
 
@@ -229,9 +250,6 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     public function validate_preflight_check($data, $files, $errors, $attemptid)
     {
-        echo "validate_preflight_check";
-        var_dump($data);
-//        die();
         if (empty($data['proctoring'])) {
             $errors['proctoring'] = get_string('youmustagree', 'quizaccess_exproctor');
         }
@@ -288,64 +306,66 @@ class quizaccess_exproctor extends quiz_access_rule_base
         return '';
     }
 
-//    /**
-//     * Sets up the attempt (review or summary) page with any special extra
-//     * properties required by this rule.
-//     *
-//     * @param moodle_page $page the page object to initialise.
-//     * @throws coding_exception
-//     * @throws dml_exception
-//     */
-//    public function setup_attempt_page($page)
-//    {
-//        $cmid = optional_param('cmid', '', PARAM_INT);
-//        $attempt = optional_param('attempt', '', PARAM_INT);
-//
-//        $page->set_title($this->quizobj->get_course()->shortname . ': ' . $page->title);
-//        $page->set_popup_notification_allowed(false); // Prevent message notifications.
-//        $page->set_heading($page->title);
-//
-//        global $DB, $COURSE, $USER;
-//        if ($cmid) {
-//            $contextquiz = $DB->get_record('course_modules', array('id' => $cmid));
-//
-//            $record = new stdClass();
-//            $record->courseid = $COURSE->id;
-//            $record->quizid = $contextquiz->id;
-//            $record->userid = $USER->id;
-//            $record->webcampicture = '';
-//            $record->status = $attempt;
-//            $record->timemodified = time();
-//            $record->id = $DB->insert_record('quizaccess_proctoring_logs', $record, true);
-//
-//
-//            //////// Get Image Frequency and Image Width ////////
-//            $imagefrequencysql = "SELECT * FROM {config_plugins} WHERE plugin = 'quizaccess_exproctor' AND name = 'autoreconfigurefrequency'";
-//            $frequencydata = $DB->get_recordset_sql($imagefrequencysql);
-//
-//            $frequency = 3 * 1000;
-//            if (count($frequencydata) > 0) {
-//                foreach ($frequencydata as $row) {
-//                    $frequency = (int)$row->value * 1000;
-//                }
-//            }
-//
-//            $imagesizesql = "SELECT * FROM {config_plugins} WHERE plugin = 'quizaccess_exproctor' AND name = 'autoreconfigureimagewidth'";
-//            $imagesizedata = $DB->get_recordset_sql($imagesizesql);
-//
-//            $image_width = 230;
-//            if (count($imagesizedata) > 0) {
-//                foreach ($imagesizedata as $row) {
-//                    $image_width = $row->value;
-//                }
-//            }
-//
-//            $record->frequency = $frequency;
-//            $record->image_width = $image_width;
-//
-//            var_dump($record);
-////            die();
-////            $page->requires->js_call_amd('quizaccess_exproctor/proctoring', 'setup', array($record));
-//        }
-//    }
+    /**
+     * Sets up the attempt (review or summary) page with any special extra
+     * properties required by this rule.
+     *
+     * @param moodle_page $page the page object to initialise.
+     * @throws coding_exception
+     * @throws dml_exception
+     */
+    public function setup_attempt_page($page)
+    {
+        $cmid = optional_param('cmid', '', PARAM_INT);
+        $attempt = optional_param('attempt', '', PARAM_INT);
+
+        $page->set_title($this->quizobj->get_course()->shortname . ': ' . $page->title);
+        $page->set_popup_notification_allowed(false); // Prevent message notifications.
+        $page->set_heading($page->title);
+
+        global $DB, $COURSE, $USER;
+        if ($cmid) {
+            $contextquiz = $DB->get_record('course_modules', array('id' => $cmid));
+
+            $record = new stdClass();
+            $record->courseid = $COURSE->id;
+            $record->quizid = $contextquiz->id;
+            $record->userid = $USER->id;
+            $record->webcampicture = '';
+            $record->status = $attempt;
+            $record->timemodified = time();
+            echo "<h1>First</h1>";
+            var_dump($record);
+            $record->id = $DB->insert_record('quizaccess_exproctor_wb_logs', $record, true);
+
+            //////// Get Image Frequency and Image Width ////////
+            $imagefrequencysql = "SELECT * FROM {config_plugins} WHERE plugin = 'quizaccess_exproctor' AND name = 'autoreconfigurefrequency'";
+            $frequencydata = $DB->get_recordset_sql($imagefrequencysql);
+
+            $frequency = 3 * 1000;
+            if (count($frequencydata) > 0) {
+                foreach ($frequencydata as $row) {
+                    $frequency = (int)$row->value * 1000;
+                }
+            }
+
+            $imagesizesql = "SELECT * FROM {config_plugins} WHERE plugin = 'quizaccess_exproctor' AND name = 'autoreconfigureimagewidth'";
+            $imagesizedata = $DB->get_recordset_sql($imagesizesql);
+
+            $image_width = 230;
+            if (count($imagesizedata) > 0) {
+                foreach ($imagesizedata as $row) {
+                    $image_width = $row->value;
+                }
+            }
+
+            $record->frequency = $frequency;
+            $record->image_width = $image_width;
+
+            $record->is_quiz_started = true;
+            var_dump($record);
+//            die();
+//            $page->requires->js_call_amd('quizaccess_exproctor/proctoring', 'webcam_proctoring', array($record));
+        }
+    }
 }
