@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Implementation of the quizaccess_examproctoring plugin.
+ * Implementation of the quizaccess_exproctor plugin.
  *
- * @package    quizaccess_examproctoring
+ * @package    quizaccess_exproctor
  * @copyright  2022 Shevan Fernando <w.k.b.s.t.fernando@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,7 +26,7 @@
  * Custom uninstallation procedure
  * @return bool: only returns true
  */
-function xmldb_quizaccess_examproctoring_uninstall()
+function xmldb_quizaccess_exproctor_uninstall()
 {
     return true;
 }

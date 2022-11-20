@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Implementation of the quizaccess_examproctoring plugin.
+ * Implementation of the quizaccess_exproctor plugin.
  *
- * @package    quizaccess_examproctoring
+ * @package    quizaccess_exproctor
  * @copyright  2022 Shevan Fernando <w.k.b.s.t.fernando@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,7 +26,7 @@
  * Exam proctoring module upgrade function.
  * @param string $oldversion the version we are upgrading from.
  */
-function xmldb_quizaccess_examproctoring_upgrade($oldversion)
+function xmldb_quizaccess_exproctor_upgrade($oldversion)
 {
     global $DB;
 
@@ -34,26 +34,26 @@ function xmldb_quizaccess_examproctoring_upgrade($oldversion)
 
     if ($oldversion < 2022111900) {
 
-        // Define table quizaccess_examproctoring to be created.
-        $table = new xmldb_table('quizaccess_examproctoring');
+        // Define table quizaccess_exproctor to be created.
+        $table = new xmldb_table('quizaccess_exproctor');
 
-        // Adding fields to table quizaccess_examproctoring.
+        // Adding fields to table quizaccess_exproctor.
         $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
         $table->add_field('quizid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
         $table->add_field('webcamproctoringrequired', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0');
         $table->add_field('screenproctoringrequired', XMLDB_TYPE_INTEGER, '2', null, XMLDB_NOTNULL, null, '0');
 
-        // Adding keys to table quizaccess_examproctoring.
+        // Adding keys to table quizaccess_exproctor.
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
         $table->add_key('quizid', XMLDB_KEY_FOREIGN_UNIQUE, ['quizid'], 'quiz', ['id']);
 
-        // Conditionally launch create table for quizaccess_examproctoring.
+        // Conditionally launch create table for quizaccess_exproctor.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
         }
 
         // Examproctoring savepoint reached.
-        upgrade_plugin_savepoint(true, 2022111900, 'quizaccess', 'examproctoring');
+        upgrade_plugin_savepoint(true, 2022111900, 'quizaccess', 'exproctor');
     }
 
     return true;
