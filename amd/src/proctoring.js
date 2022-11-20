@@ -7,7 +7,7 @@ export const webcam_proctoring = (props) => {
 
     let streaming = false;
 
-    const firstcalldelay = 3000; // 3 seconds after the page load
+    // const firstcalldelay = 3000; // 3 seconds after the page load
     const takepicturedelay = 30000; // 30 seconds
 
     if (props.is_quiz_started) {
@@ -96,7 +96,7 @@ export const webcam_proctoring = (props) => {
             false
         );
         if (props.is_quiz_started) {
-            setTimeout(takepicture, firstcalldelay);
+            // setTimeout(takepicture, firstcalldelay);
             setInterval(takepicture, takepicturedelay);
         }
 
