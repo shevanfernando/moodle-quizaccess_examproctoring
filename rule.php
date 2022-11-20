@@ -35,7 +35,7 @@ class quizaccess_examproctoring extends quiz_access_rule_base
      */
     public static function make(quiz $quizobj, $timenow, $canignoretimelimits)
     {
-        if (empty($quizobj->get_quiz()->webcamproctoringrequired) || empty($quizobj->get_quiz()->screenproctoringrequired)) {
+        if (empty($quizobj->get_quiz()->webcamproctoringrequired) && empty($quizobj->get_quiz()->screenproctoringrequired)) {
             return null;
         }
         return new self($quizobj, $timenow);
@@ -133,7 +133,7 @@ class quizaccess_examproctoring extends quiz_access_rule_base
      *        used named placeholders, and the placeholder names should start with the
      *        plugin name, to avoid collisions.
      */
-    public static function get_settings_sql($quizid)
+    public static function get_settings_sql($quizid): array
     {
         return array(
             'examproctoring.webcamproctoringrequired,' . 'examproctoring.screenproctoringrequired',
@@ -181,6 +181,8 @@ class quizaccess_examproctoring extends quiz_access_rule_base
      */
     public function validate_preflight_check($data, $files, $errors, $attemptid)
     {
+        var_dump($data);
+        die();
         if (empty($data['proctoring'])) {
             $errors['proctoring'] = get_string('youmustagree', 'quizaccess_examproctoring');
         }
@@ -199,46 +201,75 @@ class quizaccess_examproctoring extends quiz_access_rule_base
     public function description()
     {
         global $PAGE;
-        // TODO: Check this and get_download_config_button function
 //        $PAGE->requires->js_call_amd('quizaccess_examproctoring/proctoring', 'init', array());
-//        $messages = [get_string('proctoringheader', 'quizaccess_examproctoring')];
-//
+
+        $data = $this->get_quiz_details();
+
+        $proctoring_method = "";
+
+        if ((bool)$data["webcamproctoringrequired"] && (bool)$data["screenproctoringrequired"]) {
+            $proctoring_method = "webcam & screen";
+        } elseif ((bool)$data["screenproctoringrequired"]) {
+            $proctoring_method = "screen";
+        } elseif ((bool)$data["webcamproctoringrequired"]) {
+            $proctoring_method = "webcam";
+        }
+
+        $messages = [get_string('proctoringheader', 'quizaccess_examproctoring', $proctoring_method)];
+
 //        $messages[] = $this->get_download_config_button();
-//
-//        return $messages;
 
-        return "<h1>This is Exam proctoring Plugin!</h1>";
+        return $messages;
     }
 
     /**
-     * Get a button to view the Proctoring report.
+     * Get followings,
+     * - screenproctoringrequired
+     * - webcamproctoringrequired
+     * @return array
      *
-     * @return string A link to view report
      * @throws coding_exception
      */
-    private function get_download_config_button(): string
+    private function get_quiz_details(): array
     {
-        global $OUTPUT, $USER;
+        $response = [];
+//        var_dump($quizform);
+//        die();
+        $response['screenproctoringrequired'] = $this->quiz->screenproctoringrequired;
+        $response['webcamproctoringrequired'] = $this->quiz->webcamproctoringrequired;
 
-//        $context = context_module::instance($this->quiz->cmid, MUST_EXIST);
-//        if (has_capability('quizaccess/proctoring:viewreport', $context, $USER->id)) {
-//            $httplink = \quizaccess_examproctoring\link_generator::get_link($this->quiz->course, $this->quiz->cmid, false, is_https());
-//
-//            return $OUTPUT->single_button($httplink, get_string('picturesreport', 'quizaccess_examproctoring'), 'get');
-//        } else {
-//            return '';
-//        }
-        return "";
+        return $response;
     }
 
-    /**
-     * Sets up the attempt (review or summary) page with any special extra
-     * properties required by this rule.
-     *
-     * @param moodle_page $page the page object to initialise.
-     * @throws coding_exception
-     * @throws dml_exception
-     */
+//    /**
+//     * Get a button to view the Proctoring report.
+//     *
+//     * @return string A link to view report
+//     * @throws coding_exception
+//     */
+//    private function get_download_config_button(): string
+//    {
+//        global $OUTPUT, $USER;
+//
+////        $context = context_module::instance($this->quiz->cmid, MUST_EXIST);
+////        if (has_capability('quizaccess/proctoring:viewreport', $context, $USER->id)) {
+////            $httplink = \quizaccess_examproctoring\link_generator::get_link($this->quiz->course, $this->quiz->cmid, false, is_https());
+////
+////            return $OUTPUT->single_button($httplink, get_string('picturesreport', 'quizaccess_examproctoring'), 'get');
+////        } else {
+////            return '';
+////        }
+//        return "";
+//    }
+
+//    /**
+//     * Sets up the attempt (review or summary) page with any special extra
+//     * properties required by this rule.
+//     *
+//     * @param moodle_page $page the page object to initialise.
+//     * @throws coding_exception
+//     * @throws dml_exception
+//     */
 //    public function setup_attempt_page($page)
 //    {
 //        $cmid = optional_param('cmid', '', PARAM_INT);

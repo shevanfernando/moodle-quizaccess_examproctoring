@@ -49,4 +49,5 @@ $string['webcamproctoringrequired'] = 'Webcam identity validation';
 $string['screenproctoringrequired'] = 'Screen identity validation';
 $string['notrequired'] = 'not required';
 $string['proctoringrequiredoption'] = 'must be accepted before beginning an attempt';
-
+$string['proctoringheader'] = '<strong>To continue with this quiz attempt, please grant your web browser permission to access your {$a}.</strong>';
+$string['picturesreport'] = 'View proctoring report';
