@@ -24,9 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once $CFG->libdir . '/externallib.php';
+require_once("$CFG->libdir/externallib.php");
 
-class quizaccess_examproctoring_external extends external_api
+class quizaccess_exproctor_external extends external_api
 {
 
     public static function send_webcam_shot($courseid, $webcamshotid, $quizid, $webcampicture)
