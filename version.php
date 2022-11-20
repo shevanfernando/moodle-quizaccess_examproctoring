@@ -26,6 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'quizaccess_exproctor';
 $plugin->release = '0.1.0';
-$plugin->version = 2022112001;
+$plugin->version = 2022112002;
 $plugin->requires = 2021051700;
 $plugin->maturity = MATURITY_ALPHA;
