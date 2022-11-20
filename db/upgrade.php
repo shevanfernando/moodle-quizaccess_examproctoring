@@ -56,5 +56,32 @@ function xmldb_quizaccess_exproctor_upgrade($oldversion)
         upgrade_plugin_savepoint(true, 2022111900, 'quizaccess', 'exproctor');
     }
 
+    if ($oldversion < 2022112001) {
+
+        // Define field proctoringmethod to be added to quizaccess_exproctor.
+        $table = new xmldb_table('quizaccess_exproctor');
+        $field_proctoringmethod = new xmldb_field('proctoringmethod', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL, null, '0', 'screenproctoringrequired');
+        $field_screenshotdelay = new xmldb_field('screenshotdelay', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '30000', 'proctoringmethod');
+        $field_screenshotwidth = new xmldb_field('screenshotwidth', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '230', 'screenshotdelay');
+
+        // Conditionally launch add field proctoringmethod.
+        if (!$dbman->field_exists($table, $field_proctoringmethod)) {
+            $dbman->add_field($table, $field_proctoringmethod);
+        }
+
+        // Conditionally launch add field screenshotdelay.
+        if (!$dbman->field_exists($table, $field_screenshotdelay)) {
+            $dbman->add_field($table, $field_screenshotdelay);
+        }
+
+        // Conditionally launch add field screenshotwidth.
+        if (!$dbman->field_exists($table, $field_screenshotwidth)) {
+            $dbman->add_field($table, $field_screenshotwidth);
+        }
+
+        // Exproctor savepoint reached.
+        upgrade_plugin_savepoint(true, 2022112001, 'quizaccess', 'exproctor');
+    }
+
     return true;
 }
