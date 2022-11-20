@@ -17,7 +17,7 @@
 /**
  * Database access for the Exam Proctoring plugin.
  *
- * @package    quizaccess_examproctoring
+ * @package    quizaccess_exproctor
  * @copyright  2022 Shevan Thiranja Fernando <w.k.b.s.t.fernando@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = array(
-    'quizaccess/examproctoring:send_evidence' => array(
+    'quizaccess/exproctor:send_evidence' => array(
         'riskbitmask' => RISK_SPAM,
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
@@ -33,7 +33,7 @@ $capabilities = array(
             'student' => CAP_ALLOW,
         )
     ),
-    'quizaccess/examproctoring:get_evidence' => array(
+    'quizaccess/exproctor:get_evidence' => array(
         'riskbitmask' => RISK_SPAM,
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
@@ -43,7 +43,7 @@ $capabilities = array(
             'manager' => CAP_ALLOW
         )
     ),
-    'quizaccess/examproctoring:view_report' => array(
+    'quizaccess/exproctor:view_report' => array(
         'riskbitmask' => RISK_SPAM,
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
@@ -53,7 +53,7 @@ $capabilities = array(
             'manager' => CAP_ALLOW
         )
     ),
-    'quizaccess/examproctoring:delete_evidence' => array(
+    'quizaccess/exproctor:delete_evidence' => array(
         'riskbitmask' => RISK_DATALOSS,
         'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
