@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="mod/quiz/accessrule/examproctoring/db" VERSION="20221119"
-       COMMENT="XMLDB file for Moodle mod/quiz/accessrule/examproctoring"
+<XMLDB PATH="mod/quiz/accessrule/exproctor/db" VERSION="20221119"
+       COMMENT="XMLDB file for Moodle mod/quiz/accessrule/exproctor"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xsi:noNamespaceSchemaLocation="../../../../../lib/xmldb/xmldb.xsd"
 >
     <TABLES>
-        <TABLE NAME="quizaccess_examproctoring" COMMENT="Stores the additional setting required by this accessrule">
+        <TABLE NAME="quizaccess_exproctor" COMMENT="Stores the additional setting required by this accessrule">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
                 <FIELD NAME="quizid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"
@@ -18,6 +18,28 @@
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
                 <KEY NAME="quizid" TYPE="foreign-unique" FIELDS="quizid" REFTABLE="quiz" REFFIELDS="id"/>
+            </KEYS>
+        </TABLE>
+        <TABLE NAME="quizaccess_exproctor_wb_logs" COMMENT="Stores all validations for reporting">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
+                <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Course id." PREVIOUS="id" NEXT="quizid"/>
+                <FIELD NAME="quizid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Quiz id" PREVIOUS="courseid" NEXT="userid"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
+                       COMMENT="User who validate identity" PREVIOUS="quizid" NEXT="profilepicture"/>
+                <FIELD NAME="webcampicture" TYPE="text" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Webcam photo used for validation purposes" PREVIOUS="profilepicture" NEXT="status"/>
+                <FIELD NAME="status" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="Validation process status" PREVIOUS="webcampicture" NEXT="timemodified"/>
+                <FIELD NAME="fileid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="File table id" PREVIOUS="status" NEXT="timemodified"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="Validation process date and time" PREVIOUS="status"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id" NEXT="quizid"/>
             </KEYS>
         </TABLE>
     </TABLES>
