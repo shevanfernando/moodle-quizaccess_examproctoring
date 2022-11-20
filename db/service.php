@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define("MOODLE_INTERNAL") || die;
+defined("MOODLE_INTERNAL") || die;
 
 $functions = array(
     'quizaccess_examproctoring_send_webcam_shot' => array(
