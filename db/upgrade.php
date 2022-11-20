@@ -56,12 +56,12 @@ function xmldb_quizaccess_exproctor_upgrade($oldversion)
         upgrade_plugin_savepoint(true, 2022111900, 'quizaccess', 'exproctor');
     }
 
-    if ($oldversion < 2022112001) {
+    if ($oldversion < 2022112002) {
 
         // Define field proctoringmethod to be added to quizaccess_exproctor.
         $table = new xmldb_table('quizaccess_exproctor');
         $field_proctoringmethod = new xmldb_field('proctoringmethod', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL, null, '0', 'screenproctoringrequired');
-        $field_screenshotdelay = new xmldb_field('screenshotdelay', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '30000', 'proctoringmethod');
+        $field_screenshotdelay = new xmldb_field('screenshotdelay', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL, null, '3', 'proctoringmethod');
         $field_screenshotwidth = new xmldb_field('screenshotwidth', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '230', 'screenshotdelay');
 
         // Conditionally launch add field proctoringmethod.
@@ -78,19 +78,6 @@ function xmldb_quizaccess_exproctor_upgrade($oldversion)
         if (!$dbman->field_exists($table, $field_screenshotwidth)) {
             $dbman->add_field($table, $field_screenshotwidth);
         }
-
-        // Exproctor savepoint reached.
-        upgrade_plugin_savepoint(true, 2022112001, 'quizaccess', 'exproctor');
-    }
-
-    if ($oldversion < 2022112002) {
-
-        // Changing the default of field screenshotdelay on table quizaccess_exproctor to 3.
-        $table = new xmldb_table('quizaccess_exproctor');
-        $field = new xmldb_field('screenshotdelay', XMLDB_TYPE_INTEGER, '5', null, XMLDB_NOTNULL, null, '3', 'proctoringmethod');
-
-        // Launch change of default for field screenshotdelay.
-        $dbman->change_field_default($table, $field);
 
         // Exproctor savepoint reached.
         upgrade_plugin_savepoint(true, 2022112002, 'quizaccess', 'exproctor');
