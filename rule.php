@@ -269,10 +269,12 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     public function validate_preflight_check($data, $files, $errors, $attemptid)
     {
-        if (empty($data['web_proctoring'])) {
+        $values = $this->get_quiz_details();
+
+        if (empty($data['web_proctoring']) && $values['webcamproctoringrequired']) {
             $errors['web_proctoring'] = get_string('youmustagree', 'quizaccess_exproctor');
         }
-        if (empty($data['screen_proctoring'])) {
+        if (empty($data['screen_proctoring']) && $values['screenproctoringrequired']) {
             $errors['screen_proctoring'] = get_string('youmustagree', 'quizaccess_exproctor');
         }
         return $errors;
