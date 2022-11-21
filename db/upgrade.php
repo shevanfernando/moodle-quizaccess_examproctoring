@@ -83,5 +83,59 @@ function xmldb_quizaccess_exproctor_upgrade($oldversion)
         upgrade_plugin_savepoint(true, 2022112002, 'quizaccess', 'exproctor');
     }
 
+    if ($oldversion < 2022112002) {
+
+        // Define table quizaccess_exproctor_wb_logs to be created.
+        $table = new xmldb_table('quizaccess_exproctor_wb_logs');
+
+        // Adding fields to table quizaccess_exproctor_wb_logs.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('quizid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('webcampicture', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('status', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('fileid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table quizaccess_exproctor_wb_logs.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Conditionally launch create table for quizaccess_exproctor_wb_logs.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Exproctor savepoint reached.
+        upgrade_plugin_savepoint(true, 2022112002, 'quizaccess', 'exproctor');
+    }
+
+    if ($oldversion < 2022112100) {
+
+        // Define table quizaccess_exproctor_sc_logs to be created.
+        $table = new xmldb_table('quizaccess_exproctor_sc_logs');
+
+        // Adding fields to table quizaccess_exproctor_sc_logs.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('courseid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('quizid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('screenpicture', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('status', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('fileid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+
+        // Adding keys to table quizaccess_exproctor_sc_logs.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        // Conditionally launch create table for quizaccess_exproctor_sc_logs.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Exproctor savepoint reached.
+        upgrade_plugin_savepoint(true, 2022112100, 'quizaccess', 'exproctor');
+    }
+    
     return true;
 }
