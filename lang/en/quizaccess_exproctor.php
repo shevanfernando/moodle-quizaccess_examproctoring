@@ -70,5 +70,6 @@ $string['actions'] = 'Actions';
 $string['pictures_report'] = 'View proctoring report';
 $string['pictures_used_report'] = 'These are the pictures captured during the quiz.';
 $string['std_name'] = 'Student Name';
-$string['webcam_picture'] = 'Captured Pictures';
+$string['webcam_picture'] = 'Captured Webcam Pictures';
+$string['screen_picture'] = 'Captured Screen shots';
 $string['quizaccess_exproctor'] = 'Quizaccess Exam Proctoring';

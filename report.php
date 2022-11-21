@@ -85,6 +85,7 @@ echo '<div id="main">
     . get_string('proctoring_reports_desc', 'quizaccess_exproctor') . '</div>
 ';
 
+// Delete webcam shots
 if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
     && $studentid != null
     && $cmid != null
@@ -95,6 +96,35 @@ if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
     // Delete images
     // Remove logs from quizaccess_exproctor_wb_logs
     $DB->delete_records('quizaccess_exproctor_wb_logs', array('courseid' => $courseid, 'quizid' => $cmid, 'userid' => $studentid));
+
+    $filesql = 'SELECT * FROM {files} WHERE userid IN (' . $studentid . ') AND contextid IN (' . $context->id . ') AND component = \'quizaccess_exproctor\' AND filearea = \'picture\'';
+    $usersfile = $DB->get_records_sql($filesql);
+
+    $fs = get_file_storage();
+    foreach ($usersfile as $file):
+        $fs->delete_area_files($context->id, 'quizaccess_exproctor', 'picture', $file->id);
+    endforeach;
+    $url2 = new moodle_url(
+        '/mod/quiz/accessrule/exproctor/report.php',
+        array(
+            'courseid' => $courseid,
+            'cmid' => $cmid
+        )
+    );
+    redirect($url2, 'Images deleted!', -11);
+}
+
+// Delete screen shots
+if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
+    && $studentid != null
+    && $cmid != null
+    && $courseid != null
+    && $reportid != null
+    && !empty($log_action)
+) {
+    // Delete images
+    // Remove logs from quizaccess_exproctor_sc_logs
+    $DB->delete_records('quizaccess_exproctor_sc_logs', array('courseid' => $courseid, 'quizid' => $cmid, 'userid' => $studentid));
 
     $filesql = 'SELECT * FROM {files} WHERE userid IN (' . $studentid . ') AND contextid IN (' . $context->id . ') AND component = \'quizaccess_exproctor\' AND filearea = \'picture\'';
     $usersfile = $DB->get_records_sql($filesql);
@@ -145,6 +175,7 @@ if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
 }
 
 
+# View webcam
 if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $cmid != null && $courseid != null) {
 
     // Check if report if for some user.
