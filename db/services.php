@@ -42,5 +42,23 @@ $functions = array(
         'ajax' => true,
         'capabilities' => 'quizaccess/exproctor:get_evidence',
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+    ),
+    'quizaccess_exproctor_send_screen_shot' => array(
+        'classname' => 'quizaccess_exproctor_external',
+        'methodname' => 'send_screen_shot',
+        'description' => 'Send a screen snapshot on the given session',
+        'type' => 'write',
+        'ajax' => true,
+        'capabilities' => 'quizaccess/exproctor:send_evidence',
+        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
+    ),
+    'quizaccess_exproctor_get_screen_shot' => array(
+        'classname' => 'quizaccess_exproctor_external',
+        'methodname' => 'get_screen_shot',
+        'description' => 'Get list of screen snapshot in the given session',
+        'type' => 'read',
+        'ajax' => true,
+        'capabilities' => 'quizaccess/exproctor:get_evidence',
+        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     )
 );
