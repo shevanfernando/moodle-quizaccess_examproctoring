@@ -43,6 +43,11 @@ require_login($course, true, $cm);
 $COURSE = $DB->get_record('course', array('id' => $courseid));
 $quiz = $DB->get_record('quiz', array('id' => $cm->instance));
 
+$proctoring = $DB->get_record('quizaccess_exproctor', array('quizid' => $quiz->id));
+
+$webcamproctoringrequired = $proctoring->webcamproctoringrequired;
+$screenproctoringrequired = $proctoring->screenproctoringrequired;
+
 $params = array(
     'courseid' => $courseid,
     'userid' => $studentid,
@@ -190,11 +195,21 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
 
         $data[] = date("Y/M/d H:m:s", $info->timemodified);
 
-        $data[] = '<a style="padding-bottom:5px" href="?courseid=' . $courseid .
-            '&quizid=' . $cmid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
-            get_string('webcam_report', 'quizaccess_exproctor') . '</a>' . '</br><a href="?courseid=' . $courseid .
-            '&quizid=' . $cmid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
-            get_string('screen_report', 'quizaccess_exproctor') . '</a>';
+        if ((bool)$webcamproctoringrequired && (bool)$screenproctoringrequired) {
+            $data[] = '<a style="padding-bottom:5px" href="?courseid=' . $courseid .
+                '&quizid=' . $cmid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
+                get_string('webcam_report', 'quizaccess_exproctor') . '</a>' . '</br><a href="?courseid=' . $courseid .
+                '&quizid=' . $cmid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
+                get_string('screen_report', 'quizaccess_exproctor') . '</a>';
+        } elseif ((bool)$webcamproctoringrequired) {
+            $data[] = '<a" href="?courseid=' . $courseid .
+                '&quizid=' . $cmid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
+                get_string('webcam_report', 'quizaccess_exproctor') . '</a>';
+        } elseif ((bool)$screenproctoringrequired) {
+            $data[] = '<a href="?courseid=' . $courseid .
+                '&quizid=' . $cmid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
+                get_string('screen_report', 'quizaccess_exproctor') . '</a>';
+        }
 
         $table->add_data($data);
     }
