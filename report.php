@@ -90,9 +90,6 @@ if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
     // Remove logs from quizaccess_exproctor_wb_logs
     $DB->delete_records('quizaccess_exproctor_wb_logs', array('courseid' => $courseid, 'quizid' => $cmid, 'userid' => $studentid));
 
-    echo "SD";
-    die();
-
     $filesql = 'SELECT * FROM {files} WHERE userid IN (' . $studentid . ') AND contextid IN (' . $context->id . ') AND component = \'quizaccess_exproctor\' AND filearea = \'picture\'';
     $usersfile = $DB->get_records_sql($filesql);
 
