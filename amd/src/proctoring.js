@@ -62,6 +62,7 @@ export const webcam_proctoring = (props) => {
 
                 const data = canvas.toDataURL("image/png");
                 photo.setAttribute("src", data);
+                props.webcampicture = data;
 
                 const api_function = 'quizaccess_exproctor_send_webcam_shot';
                 const params = {
@@ -90,9 +91,9 @@ export const webcam_proctoring = (props) => {
                         }
                     }
                 }).fail(Notification.exception);
+            } else {
+                clearphoto();
             }
-        } else {
-            clearphoto();
         }
     };
 
@@ -103,6 +104,8 @@ export const webcam_proctoring = (props) => {
                 if (!streaming) {
                     if (props.is_quiz_started) {
                         width = 270;
+                    } else {
+                        width = 320;
                     }
                     height = video.videoHeight / (video.videoWidth / width);
 

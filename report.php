@@ -239,8 +239,8 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
         $tablepictures->setup();
         $pictures = '';
 
-        var_dump($info->webcampicture);
-        die();
+//        var_dump($info->webcampicture);
+//        die();
 
         foreach ($sqlexecuted as $info) {
             $pictures .= $info->webcampicture

@@ -29,7 +29,7 @@ require_once("$CFG->libdir/externallib.php");
 class quizaccess_exproctor_external extends external_api
 {
 
-    public static function send_webcam_shot($courseid, $webcamshotid, $quizid, $webcampicture)
+    public static function send_webcam_shot($courseid, $webcamshotid, $quizid, $webcampicture): array
     {
         global $DB, $USER;
 
@@ -63,7 +63,7 @@ class quizaccess_exproctor_external extends external_api
         list($type, $data) = explode(';', $data);
         list(, $data) = explode(',', $data);
         $data = base64_decode($data);
-        $filename = 'webcam-' . $webcamshotid . '-' . $USER->id . '-' . $courseid . '-' . time() . rand(1, 10000) . '.png';
+        $filename = 'webcam-' . $webcamshotid . '-' . $USER->id . '-' . $courseid . '-' . time() . rand(1, 1000) . '.png';
 
         $record->courseid = $courseid;
         $record->filename = $filename;
@@ -101,7 +101,7 @@ class quizaccess_exproctor_external extends external_api
         $record->status = $camshot->status;
         $record->fileid = $file_id;
         $record->timemodified = time();
-        $screenshotid = $DB->insert_record('quizaccess_exproctor_wb_logs', $record, true);
+        $webcamshotid = $DB->insert_record('quizaccess_exproctor_wb_logs', $record, true);
 
         $result = array();
         $result['webcamshotid'] = $webcamshotid;
@@ -114,7 +114,7 @@ class quizaccess_exproctor_external extends external_api
      *
      * @return external_function_parameters
      */
-    public static function send_webcam_shot_parameters()
+    public static function send_webcam_shot_parameters(): external_function_parameters
     {
         return new external_function_parameters(
             array(
@@ -131,7 +131,7 @@ class quizaccess_exproctor_external extends external_api
      *
      * @return external_single_structure
      */
-    public static function send_webcam_shot_returns()
+    public static function send_webcam_shot_returns(): external_single_structure
     {
         return new external_single_structure(
             array(
@@ -146,7 +146,7 @@ class quizaccess_exproctor_external extends external_api
      *
      * @return external_single_structure
      */
-    public static function get_webcam_shot_returns()
+    public static function get_webcam_shot_returns(): external_single_structure
     {
         return new external_single_structure(
             array(
@@ -168,22 +168,6 @@ class quizaccess_exproctor_external extends external_api
     }
 
     /**
-     * Set the cam shots parameters.
-     *
-     * @return external_function_parameters
-     */
-    public static function get_webcam_shot_parameters()
-    {
-        return new external_function_parameters(
-            array(
-                'courseid' => new external_value(PARAM_INT, 'webcam shot course id'),
-                'quizid' => new external_value(PARAM_INT, 'webcam shot quiz id'),
-                'userid' => new external_value(PARAM_INT, 'webcam shot user id')
-            )
-        );
-    }
-
-    /**
      * Get the webcam shots as service.
      *
      * @param mixed $courseid course id.
@@ -196,7 +180,7 @@ class quizaccess_exproctor_external extends external_api
      * @throws moodle_exception
      * @throws required_capability_exception
      */
-    public static function get_webcam_shot($courseid, $quizid, $userid)
+    public static function get_webcam_shot($courseid, $quizid, $userid): array
     {
         global $DB, $USER;
 
@@ -207,7 +191,7 @@ class quizaccess_exproctor_external extends external_api
         );
 
         // Validate the params.
-        self::validate_parameters(self::get_camshots_parameters(), $params);
+        self::validate_parameters(self::get_webcam_shot_parameters(), $params);
 
         $context = context_module::instance($params['quizid']);
 
@@ -245,6 +229,22 @@ class quizaccess_exproctor_external extends external_api
         $result['webcamshots'] = $returnedwebcamhosts;
         $result['warnings'] = $warnings;
         return $result;
+    }
+
+    /**
+     * Set the cam shots parameters.
+     *
+     * @return external_function_parameters
+     */
+    public static function get_webcam_shot_parameters(): external_function_parameters
+    {
+        return new external_function_parameters(
+            array(
+                'courseid' => new external_value(PARAM_INT, 'webcam shot course id'),
+                'quizid' => new external_value(PARAM_INT, 'webcam shot quiz id'),
+                'userid' => new external_value(PARAM_INT, 'webcam shot user id')
+            )
+        );
     }
 
     /**
