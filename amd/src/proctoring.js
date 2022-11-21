@@ -15,6 +15,17 @@ export const webcam_proctoring = (props) => {
         });
     });
 
+    // Skip for summary page
+    if (document.getElementById("page-mod-quiz-summary") !== null &&
+        document.getElementById("page-mod-quiz-summary").innerHTML.length) {
+        return false;
+    }
+    // Skip for review page
+    if (document.getElementById("page-mod-quiz-review") !== null &&
+        document.getElementById("page-mod-quiz-review").innerHTML.length) {
+        return false;
+    }
+
     let width = props.image_width; // We will scale the photo width to this
     let height = 0; // This will be computed based on the input stream
 
@@ -104,8 +115,6 @@ export const webcam_proctoring = (props) => {
                 if (!streaming) {
                     if (props.is_quiz_started) {
                         width = 270;
-                    } else {
-                        width = 320;
                     }
                     height = video.videoHeight / (video.videoWidth / width);
 
@@ -126,7 +135,37 @@ export const webcam_proctoring = (props) => {
             // setTimeout(takepicture, firstcalldelay);
             setInterval(takepicture, takepicturedelay);
         }
-
-        window.console.log(props);
     }
+
+    const vidOff = () => {
+        video.srcObject.getVideoTracks().forEach((track) => track.stop());
+        isCameraAllowed = false;
+    };
+
+    if (props.is_close) {
+        vidOff();
+        return false;
+    }
+};
+
+export const init = () => {
+    // window.console.log($('.quizstartbuttondiv'));
+
+    const submit_button_id = $('.quizstartbuttondiv').find("button")[0].id;
+    let data = {
+        image_width: 320,
+        frequency: 3000,
+        is_quiz_started: false,
+        is_close: true
+    };
+
+    $(`#${submit_button_id}`).click(function() {
+        data.is_close = false;
+        webcam_proctoring(data);
+    });
+
+    $('#id_cancel').click(function() {
+        data.is_close = true;
+        webcam_proctoring(data);
+    });
 };

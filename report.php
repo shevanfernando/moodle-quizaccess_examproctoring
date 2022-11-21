@@ -203,7 +203,7 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
                 '&quizid=' . $cmid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
                 get_string('screen_report', 'quizaccess_exproctor') . '</a>';
         } elseif ((bool)$webcamproctoringrequired) {
-            $data[] = '<a" href="?courseid=' . $courseid .
+            $data[] = '<a href="?courseid=' . $courseid .
                 '&quizid=' . $cmid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
                 get_string('webcam_report', 'quizaccess_exproctor') . '</a>';
         } elseif ((bool)$screenproctoringrequired) {

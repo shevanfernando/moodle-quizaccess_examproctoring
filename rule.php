@@ -199,9 +199,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
         global $PAGE;
         $data = $this->get_quiz_details();
 
-        $data["is_quiz_started"] = false;
-
-        $PAGE->requires->js_call_amd('quizaccess_exproctor/proctoring', 'webcam_proctoring', array($data));
+        $PAGE->requires->js_call_amd('quizaccess_exproctor/proctoring', 'init', array());
 
         // this only for debug the code.
         // TODO: Remove this before push the code into git hub
