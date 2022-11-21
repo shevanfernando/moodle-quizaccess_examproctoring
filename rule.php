@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+global $CFG;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/quiz/accessrule/accessrulebase.php');
@@ -85,7 +87,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
             ));
         $mform->addHelpButton('proctoringmethod', 'proctoringmethod', 'quizaccess_exproctor');
         $mform->addElement('text', 'screenshotdelay', get_string('setting:screenshot_delay', 'quizaccess_exproctor'));
-        $mform->setDefault('screenshotdelay', 30000);
+        $mform->setDefault('screenshotdelay', 3);
         $mform->addHelpButton('screenshotdelay', 'screenshotdelay', 'quizaccess_exproctor');
         $mform->addElement('text', 'screenshotwidth', get_string('setting:screenshot_width', 'quizaccess_exproctor'));
         $mform->setDefault('screenshotwidth', 230);
@@ -199,18 +201,18 @@ class quizaccess_exproctor extends quiz_access_rule_base
         global $PAGE;
         $data = $this->get_quiz_details();
 
-        $PAGE->requires->js_call_amd('quizaccess_exproctor/proctoring', 'init', array());
+        $PAGE->requires->js_call_amd('quizaccess_exproctor/proctoring', 'init', array($data));
 
         // this only for debug the code.
         // TODO: Remove this before push the code into git hub
         get_string_manager()->reset_caches();
 
-        if ((bool)$data["webcamproctoringrequired"] && (bool)$data["screenproctoringrequired"]) {
+        if ($data["webcamproctoringrequired"] && $data["screenproctoringrequired"]) {
             $this->get_screen_proctoring_form_fields($mform);
             $this->get_webcam_proctoring_form_fields($mform);
-        } elseif ((bool)$data["screenproctoringrequired"]) {
+        } elseif ($data["screenproctoringrequired"]) {
             $this->get_screen_proctoring_form_fields($mform);
-        } elseif ((bool)$data["webcamproctoringrequired"]) {
+        } elseif ($data["webcamproctoringrequired"]) {
             $this->get_webcam_proctoring_form_fields($mform);
         };
     }
@@ -230,8 +232,8 @@ class quizaccess_exproctor extends quiz_access_rule_base
         $response['cmid'] = $this->quiz->cmid;
         $response['courseid'] = $this->quiz->course;
         $response['quizid'] = $this->quiz->id;
-        $response['screenproctoringrequired'] = $this->quiz->screenproctoringrequired;
-        $response['webcamproctoringrequired'] = $this->quiz->webcamproctoringrequired;
+        $response['screenproctoringrequired'] = (bool)$this->quiz->screenproctoringrequired;
+        $response['webcamproctoringrequired'] = (bool)$this->quiz->webcamproctoringrequired;
         $response['proctoringmethod'] = $this->quiz->proctoringmethod;
         $response['screenshotdelay'] = $this->quiz->screenshotdelay;
         $response['screenshotwidth'] = $this->quiz->screenshotwidth;
@@ -243,14 +245,16 @@ class quizaccess_exproctor extends quiz_access_rule_base
     {
         $mform->addElement('header', 'screenproctoringheader', get_string('openscreen', 'quizaccess_exproctor'));
         $mform->addElement('static', 'screenproctoringmessage', '', get_string('screenproctoringstatement', 'quizaccess_exproctor'));
+        $mform->addElement('static', 'screenmessage', '', get_string('screen_html', 'quizaccess_exproctor'));
+        $mform->addElement('checkbox', 'screen_proctoring', '', get_string('proctoringlabel', 'quizaccess_exproctor'));
     }
 
     private function get_webcam_proctoring_form_fields($mform)
     {
         $mform->addElement('header', 'webproctoringheader', get_string('openwebcam', 'quizaccess_exproctor'));
         $mform->addElement('static', 'webproctoringmessage', '', get_string('webcamproctoringstatement', 'quizaccess_exproctor'));
-        $mform->addElement('static', 'cammessage', '', get_string('camhtml', 'quizaccess_exproctor'));
-        $mform->addElement('checkbox', 'proctoring', '', get_string('proctoringlabel', 'quizaccess_exproctor'));
+        $mform->addElement('static', 'cammessage', '', get_string('cam_html', 'quizaccess_exproctor'));
+        $mform->addElement('checkbox', 'web_proctoring', '', get_string('proctoringlabel', 'quizaccess_exproctor'));
     }
 
     /**
@@ -265,8 +269,11 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     public function validate_preflight_check($data, $files, $errors, $attemptid)
     {
-        if (empty($data['proctoring'])) {
-            $errors['proctoring'] = get_string('youmustagree', 'quizaccess_exproctor');
+        if (empty($data['web_proctoring'])) {
+            $errors['web_proctoring'] = get_string('youmustagree', 'quizaccess_exproctor');
+        }
+        if (empty($data['screen_proctoring'])) {
+            $errors['screen_proctoring'] = get_string('youmustagree', 'quizaccess_exproctor');
         }
         return $errors;
     }
@@ -286,11 +293,11 @@ class quizaccess_exproctor extends quiz_access_rule_base
 
         $proctoring_method = "";
 
-        if ((bool)$data["webcamproctoringrequired"] && (bool)$data["screenproctoringrequired"]) {
+        if ($data["webcamproctoringrequired"] && $data["screenproctoringrequired"]) {
             $proctoring_method = "webcam & screen";
-        } elseif ((bool)$data["screenproctoringrequired"]) {
+        } elseif ($data["screenproctoringrequired"]) {
             $proctoring_method = "screen";
-        } elseif ((bool)$data["webcamproctoringrequired"]) {
+        } elseif ($data["webcamproctoringrequired"]) {
             $proctoring_method = "webcam";
         }
 
@@ -344,15 +351,6 @@ class quizaccess_exproctor extends quiz_access_rule_base
         if ($cmid) {
             $contextquiz = $DB->get_record('course_modules', array('id' => $cmid));
 
-            $record = new stdClass();
-            $record->courseid = $COURSE->id;
-            $record->quizid = $contextquiz->id;
-            $record->userid = $USER->id;
-            $record->webcampicture = '';
-            $record->status = $attempt;
-            $record->timemodified = time();
-            $record->id = $DB->insert_record('quizaccess_exproctor_wb_logs', $record, true);
-
             //////// Get Image Frequency and Image Width ////////
 
             $frequency = ((int)$data["screenshotdelay"]) * 1000;
@@ -365,13 +363,50 @@ class quizaccess_exproctor extends quiz_access_rule_base
                 $image_width = 230;
             }
 
-            $record->frequency = $frequency;
-            $record->image_width = $image_width;
-
-            $record->is_quiz_started = true;
-//            var_dump($record);
-//            die();
-            $page->requires->js_call_amd('quizaccess_exproctor/proctoring', 'webcam_proctoring', array($record));
+            if ($data["webcamproctoringrequired"] && $data["screenproctoringrequired"]) {
+                $this->save_webcam_shots($COURSE, $contextquiz, $USER, $attempt, $DB, $frequency, $image_width, $page);
+                $this->save_screen_shots($COURSE, $contextquiz, $USER, $attempt, $DB, $frequency, $image_width, $page);
+            } elseif ($data["screenproctoringrequired"]) {
+                $this->save_screen_shots($COURSE, $contextquiz, $USER, $attempt, $DB, $frequency, $image_width, $page);
+            } elseif ($data["webcamproctoringrequired"]) {
+                $this->save_webcam_shots($COURSE, $contextquiz, $USER, $attempt, $DB, $frequency, $image_width, $page);
+            }
         }
+    }
+
+    private function save_webcam_shots($COURSE, $contextquiz, $USER, $attempt, $DB, $frequency, $image_width, $page)
+    {
+        $record = new stdClass();
+        $record->courseid = $COURSE->id;
+        $record->quizid = $contextquiz->id;
+        $record->userid = $USER->id;
+        $record->webcampicture = '';
+        $record->status = $attempt;
+        $record->timemodified = time();
+        $record->id = $DB->insert_record('quizaccess_exproctor_wb_logs', $record, true);
+
+        $record->frequency = $frequency;
+        $record->image_width = $image_width;
+        $record->is_quiz_started = true;
+
+        $page->requires->js_call_amd('quizaccess_exproctor/proctoring', 'webcam_proctoring', array($record));
+    }
+
+    private function save_screen_shots($COURSE, $contextquiz, $USER, $attempt, $DB, $frequency, $image_width, $page)
+    {
+        $record_sc = new stdClass();
+        $record_sc->courseid = $COURSE->id;
+        $record_sc->quizid = $contextquiz->id;
+        $record_sc->userid = $USER->id;
+        $record_sc->screenpicture = '';
+        $record_sc->status = $attempt;
+        $record_sc->timemodified = time();
+        $record_sc->id = $DB->insert_record('quizaccess_exproctor_sc_logs', $record_sc, true);
+
+        $record_sc->frequency = $frequency;
+        $record_sc->image_width = $image_width;
+        $record_sc->is_quiz_started = true;
+
+        $page->requires->js_call_amd('quizaccess_exproctor/proctoring', 'screen_proctoring', array($record_sc));
     }
 }
