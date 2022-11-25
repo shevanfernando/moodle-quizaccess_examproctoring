@@ -30,6 +30,21 @@ require_once($CFG->dirroot . '/mod/quiz/accessrule/accessrulebase.php');
 
 class quizaccess_exproctor extends quiz_access_rule_base
 {
+    /** @var array options that should be used for opening the secure popup. */
+    protected static $popupoptions = array(
+        'left' => 0,
+        'top' => 0,
+        'fullscreen' => true,
+        'scrollbars' => true,
+        'resizeable' => false,
+        'directories' => false,
+        'toolbar' => false,
+        'titlebar' => false,
+        'location' => false,
+        'status' => false,
+        'menubar' => false,
+    );
+
     /**
      * Information, such as might be shown on the quiz view page, relating to this restriction.
      * There is no obligation to return anything. If it is not appropriate to tell students
@@ -215,6 +230,24 @@ class quizaccess_exproctor extends quiz_access_rule_base
         } elseif ($data["webcamproctoringrequired"]) {
             $this->get_webcam_proctoring_form_fields($mform);
         };
+    }
+
+    /**
+     * @return boolean whether this rule requires that the attemp (and review)
+     *      pages must be displayed in a pop-up window.
+     */
+    public function attempt_must_be_in_popup()
+    {
+        return true;
+    }
+
+    /**
+     * @return array any options that are required for showing the attempt page
+     *      in a popup window.
+     */
+    public function get_popup_options()
+    {
+        return self::$popupoptions;
     }
 
     /**
