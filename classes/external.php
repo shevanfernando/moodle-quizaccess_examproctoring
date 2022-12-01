@@ -30,8 +30,138 @@ require_once("$CFG->libdir/externallib.php");
 
 class quizaccess_exproctor_external extends external_api
 {
+    /**
+     * This function set the status of the quiz in (Webcam-shot table) - (Set quiz status as finished)
+     *
+     * @param $courseid
+     * @param $attemptid
+     * @param $quizid
+     * @return bool true
+     * @throws dml_exception
+     * @throws invalid_parameter_exception
+     */
+    public static function set_wb_quiz_status($courseid, $attemptid, $quizid): bool
+    {
+        // Validate the params
+        self::validate_parameters(
+            self::set_wb_quiz_status_parameters(),
+            array(
+                'courseid' => $courseid,
+                'attemptid' => $attemptid,
+                'quizid' => $quizid
+            )
+        );
 
-    public static function send_webcam_shot($courseid, $webcamshotid, $quizid, $webcampicture): array
+        $data = self::updated_quiz_status('quizaccess_exproctor_wb_logs', $courseid, $attemptid, $quizid);
+
+        var_dump($data);
+        die();
+
+        return true;
+    }
+
+
+    /**
+     * Returns description of method parameters (Webcam-shot table)
+     *
+     * @return external_function_parameters
+     */
+    public static function set_wb_quiz_status_parameters(): external_function_parameters
+    {
+        return new external_function_parameters(
+            array(
+                'courseid' => new external_value(PARAM_INT, 'Course id', VALUE_REQUIRED),
+                'attemptid' => new external_value(PARAM_INT, 'Attempt id', VALUE_REQUIRED),
+                'quizid' => new external_value(PARAM_INT, 'Quiz id', VALUE_REQUIRED),
+            )
+        );
+    }
+
+    /**
+     * This function set the current quiz status as finished
+     *
+     * @param $tablename
+     * @param $courseid
+     * @param $attemptid
+     * @param $quizid
+     * @return bool
+     * @throws dml_exception
+     */
+    private static function updated_quiz_status($tablename, $courseid, $attemptid, $quizid): bool
+    {
+        global $DB, $USER;
+
+        $conditions = array('courseid' => $courseid, 'attemptid' => $attemptid, 'quizid' => $quizid, 'userid' => $USER->id, 'isquizfinished' => false);
+
+        $data = $DB->set_field($tablename, 'isquizfinished', true, $conditions);
+
+        return $data;
+    }
+
+    /**
+     * Returns status of current quiz attempt (Webcam-shot table)
+     *
+     * @return external_description
+     */
+    public static function set_wb_quiz_status_returns()
+    {
+        return new external_value(PARAM_BOOL, 'current quiz attempt status updated status');
+    }
+
+    /**
+     * This function set the status of the quiz in (Screen-shot table) - (Set quiz status as finished)
+     *
+     * @param $courseid
+     * @param $attemptid
+     * @param $quizid
+     * @return bool true
+     * @throws dml_exception
+     * @throws invalid_parameter_exception
+     */
+    public static function set_sc_quiz_status($courseid, $attemptid, $quizid): bool
+    {
+        // Validate the params
+        self::validate_parameters(
+            self::set_sc_quiz_status_parameters(),
+            array(
+                'courseid' => $courseid,
+                'attemptid' => $attemptid,
+                'quizid' => $quizid
+            )
+        );
+
+        $data = self::updated_quiz_status('quizaccess_exproctor_sc_logs', $courseid, $attemptid, $quizid);
+
+        return $data;
+    }
+
+    /**
+     * Returns description of method parameters (Screen-shot table)
+     *
+     * @return external_function_parameters
+     */
+    public static function set_sc_quiz_status_parameters(): external_function_parameters
+    {
+        return new external_function_parameters(
+            array(
+                'courseid' => new external_value(PARAM_INT, 'Course id', VALUE_REQUIRED),
+                'attemptid' => new external_value(PARAM_INT, 'Attempt id', VALUE_REQUIRED),
+                'quizid' => new external_value(PARAM_INT, 'Quiz id', VALUE_REQUIRED),
+            )
+        );
+    }
+
+    /**
+     * Returns status of current quiz attempt (Screen-shot table)
+     *
+     * @return external_description
+     */
+    public static function set_sc_quiz_status_returns()
+    {
+        return new external_value(PARAM_BOOL, 'current quiz attempt status updated status');
+    }
+
+    public static function send_webcam_shot($courseid, $attemptid, $quizid, $webcampicture): array
     {
         global $DB, $USER;
 
@@ -40,7 +170,7 @@ class quizaccess_exproctor_external extends external_api
             self::send_webcam_shot_parameters(),
             array(
                 'courseid' => $courseid,
-                'webcamshotid' => $webcamshotid,
+                'attemptid' => $attemptid,
                 'quizid' => $quizid,
                 'webcampicture' => $webcampicture,
             )
@@ -52,7 +182,7 @@ class quizaccess_exproctor_external extends external_api
         $record->filearea = 'picture';
         $record->component = 'quizaccess_exproctor';
         $record->filepath = '';
-        $record->itemid = $webcamshotid;
+        $record->itemid = $attemptid;
         $record->license = '';
         $record->author = '';
 
@@ -65,7 +195,7 @@ class quizaccess_exproctor_external extends external_api
         list($type, $data) = explode(';', $data);
         list(, $data) = explode(',', $data);
         $data = base64_decode($data);
-        $filename = 'webcam-' . $webcamshotid . '-' . $USER->id . '-' . $courseid . '-' . time() . rand(1, 1000) . '.png';
+        $filename = 'webcam-' . $attemptid . '-' . $USER->id . '-' . $courseid . '-' . time() . rand(1, 1000) . '.png';
 
         $record->courseid = $courseid;
         $record->filename = $filename;
@@ -93,7 +223,7 @@ class quizaccess_exproctor_external extends external_api
             false
         );
 
-        $camshot = $DB->get_record('quizaccess_exproctor_wb_logs', array('id' => $webcamshotid));
+        $camshot = $DB->get_record('quizaccess_exproctor_wb_logs', array('id' => $attemptid));
 
         $record = new stdClass();
         $record->courseid = $courseid;
@@ -103,10 +233,10 @@ class quizaccess_exproctor_external extends external_api
         $record->status = $camshot->status;
         $record->fileid = $file_id;
         $record->timemodified = time();
-        $webcamshotid = $DB->insert_record('quizaccess_exproctor_wb_logs', $record, true);
+        $attemptid = $DB->insert_record('quizaccess_exproctor_wb_logs', $record, true);
 
         $result = array();
-        $result['webcamshotid'] = $webcamshotid;
+        $result['attemptid'] = $attemptid;
         $result['warnings'] = $warnings;
         return $result;
     }
@@ -120,10 +250,10 @@ class quizaccess_exproctor_external extends external_api
     {
         return new external_function_parameters(
             array(
-                'courseid' => new external_value(PARAM_INT, 'course id'),
-                'webcamshotid' => new external_value(PARAM_INT, 'webcam shot id'),
-                'quizid' => new external_value(PARAM_INT, 'quiz id'),
-                'webcampicture' => new external_value(PARAM_RAW, 'webcam picture'),
+                'courseid' => new external_value(PARAM_INT, 'Course id'),
+                'attemptid' => new external_value(PARAM_INT, 'Attempt id'),
+                'quizid' => new external_value(PARAM_INT, 'Quiz id'),
+                'webcamshot' => new external_value(PARAM_RAW, 'webcam picture'),
             )
         );
     }
@@ -137,7 +267,7 @@ class quizaccess_exproctor_external extends external_api
     {
         return new external_single_structure(
             array(
-                'webcamshotid' => new external_value(PARAM_INT, 'webcam shot sent id'),
+                'attemptid' => new external_value(PARAM_INT, 'webcam shot sent id'),
                 'warnings' => new external_warnings()
             )
         );
@@ -155,8 +285,8 @@ class quizaccess_exproctor_external extends external_api
                 'webcamshots' => new external_multiple_structure(
                     new external_single_structure(
                         array(
-                            'courseid' => new external_value(PARAM_NOTAGS, 'webcam shot course id'),
-                            'quizid' => new external_value(PARAM_NOTAGS, 'webcam shot quiz id'),
+                            'courseid' => new external_value(PARAM_NOTAGS, 'Course id'),
+                            'quizid' => new external_value(PARAM_NOTAGS, 'Quiz id'),
                             'userid' => new external_value(PARAM_NOTAGS, 'webcam shot user id'),
                             'webcampicture' => new external_value(PARAM_RAW, 'webcam shot photo'),
                             'timemodified' => new external_value(PARAM_NOTAGS, 'webcam shot time modified'),
@@ -172,8 +302,8 @@ class quizaccess_exproctor_external extends external_api
     /**
      * Get the webcam shots as service.
      *
-     * @param mixed $courseid course id.
-     * @param mixed $quizid context/quiz id.
+     * @param mixed $courseid Course id.
+     * @param mixed $quizid context/Quiz id.
      * @param mixed $userid user id.
      *
      * @return array
@@ -242,8 +372,8 @@ class quizaccess_exproctor_external extends external_api
     {
         return new external_function_parameters(
             array(
-                'courseid' => new external_value(PARAM_INT, 'webcam shot course id'),
-                'quizid' => new external_value(PARAM_INT, 'webcam shot quiz id'),
+                'courseid' => new external_value(PARAM_INT, 'Course id'),
+                'quizid' => new external_value(PARAM_INT, 'Quiz id'),
                 'userid' => new external_value(PARAM_INT, 'webcam shot user id')
             )
         );
@@ -361,9 +491,9 @@ class quizaccess_exproctor_external extends external_api
     {
         return new external_function_parameters(
             array(
-                'courseid' => new external_value(PARAM_INT, 'course id'),
+                'courseid' => new external_value(PARAM_INT, 'Course id'),
                 'screenshotid' => new external_value(PARAM_INT, 'screen shot id'),
-                'quizid' => new external_value(PARAM_INT, 'quiz id'),
+                'quizid' => new external_value(PARAM_INT, 'Quiz id'),
                 'screenpicture' => new external_value(PARAM_RAW, 'screen picture'),
             )
         );
@@ -396,8 +526,8 @@ class quizaccess_exproctor_external extends external_api
                 'screenshots' => new external_multiple_structure(
                     new external_single_structure(
                         array(
-                            'courseid' => new external_value(PARAM_NOTAGS, 'screen shot course id'),
-                            'quizid' => new external_value(PARAM_NOTAGS, 'screen shot quiz id'),
+                            'courseid' => new external_value(PARAM_NOTAGS, 'Course id'),
+                            'quizid' => new external_value(PARAM_NOTAGS, 'Quiz id'),
                             'userid' => new external_value(PARAM_NOTAGS, 'screen shot user id'),
                             'screenpicture' => new external_value(PARAM_RAW, 'screen shot photo'),
                             'timemodified' => new external_value(PARAM_NOTAGS, 'screen shot time modified'),
@@ -413,8 +543,8 @@ class quizaccess_exproctor_external extends external_api
     /**
      * Get the screen shots as service.
      *
-     * @param mixed $courseid course id.
-     * @param mixed $quizid context/quiz id.
+     * @param mixed $courseid Course id.
+     * @param mixed $quizid context/Quiz id.
      * @param mixed $userid user id.
      *
      * @return array
@@ -483,8 +613,8 @@ class quizaccess_exproctor_external extends external_api
     {
         return new external_function_parameters(
             array(
-                'courseid' => new external_value(PARAM_INT, 'screen shot course id'),
-                'quizid' => new external_value(PARAM_INT, 'screen shot quiz id'),
+                'courseid' => new external_value(PARAM_INT, 'Course id'),
+                'quizid' => new external_value(PARAM_INT, 'Quiz id'),
                 'userid' => new external_value(PARAM_INT, 'screen shot user id')
             )
         );
