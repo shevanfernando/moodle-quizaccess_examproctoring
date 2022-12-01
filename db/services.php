@@ -78,23 +78,5 @@ $functions = array(
         'ajax' => true,
         'capabilities' => 'quizaccess/exproctor:send_evidence',
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
-    ),
-    'quizaccess_exproctor_get_wb_quiz_status' => array(
-        'classname' => 'quizaccess_exproctor_external',
-        'methodname' => 'get_wb_quiz_status',
-        'description' => 'Get status of current quiz attempt (web)',
-        'type' => 'read',
-        'ajax' => true,
-        'capabilities' => 'quizaccess/exproctor:send_evidence',
-        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
-    ),
-    'quizaccess_exproctor_get_sc_quiz_status' => array(
-        'classname' => 'quizaccess_exproctor_external',
-        'methodname' => 'get_sc_quiz_status',
-        'description' => 'Get status of current quiz attempt (screen)',
-        'type' => 'read',
-        'ajax' => true,
-        'capabilities' => 'quizaccess/exproctor:send_evidence',
-        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     )
 );
