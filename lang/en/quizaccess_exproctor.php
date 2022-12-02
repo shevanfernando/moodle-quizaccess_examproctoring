@@ -56,7 +56,8 @@ $string['screenproctoringstatement'] = 'This exam requires screen validation pro
 $string['cam_html'] = '<div class="camera"> <video id="video">Video stream not available.</video></div> <canvas id="canvas" style="display:none;"> </canvas> <img style="display:none;" id="photo" alt="The screen capture will appear in this box."/>';
 $string['screen_html'] = '<div class="camera"> <video id="video_sc">Screen stream not available.</video></div> <canvas id="canvas_sc" style="display:none;"> </canvas> <img style="display:none;" id="photo_sc" alt="The screen capture will appear in this box."/>';
 $string['proctoringlabel'] = 'I agree with the validation process.';
-$string['youmustagree'] = 'You must agree to validate your identity before continue.';
+$string['youmustagreeforwebcam'] = 'You must agree to webcam validate before continue your attempt.';
+$string['youmustagreeforscreen'] = 'You must agree to screen validate before continue your attempt.';
 $string['webcamproctoringrequired'] = 'Webcam identity validation';
 $string['screenproctoringrequired'] = 'Screen identity validation';
 $string['proctoringheader'] = '<strong>To continue with this quiz attempt, please grant your web browser permission to access your {$a}.</strong>';
