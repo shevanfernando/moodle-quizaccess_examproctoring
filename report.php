@@ -104,6 +104,7 @@ if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
 
     $fs = get_file_storage();
     foreach ($usersfile as $file):
+        // Delete the actual file
         $fs->delete_area_files($context->id, 'quizaccess_exproctor', 'picture', $file->id);
     endforeach;
     $url2 = new moodle_url(
@@ -134,7 +135,7 @@ if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
 
     $fs = get_file_storage();
     foreach ($usersfile as $file):
-        // Delete physical file in the directory
+        // Delete the actual file
         $fs->delete_area_files($context->id, 'quizaccess_exproctor', 'picture', $file->id);
     endforeach;
 
@@ -150,11 +151,11 @@ if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
     redirect($url2, 'Images deleted!', -11);
 }
 
+# Delete single webcam picture
 if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
-    && $log_action == "deletesingle"
+    && $log_action == "deletesinglewebcampic"
 ) {
-    //redirect($CFG->wwwroot.'/local/message/manage.php', 'Message created successfully!');
-    $logsql = "SELECT * FROM {quizaccess_exproctor} WHERE id= $reportid";
+    $logsql = "SELECT * FROM {quizaccess_exproctor_wb_logs} WHERE id= $reportid";
     $records = $DB->get_records_sql($logsql);
 
     if (count($records) > 0) {
@@ -171,16 +172,48 @@ if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
         foreach ($usersfile as $tempfile) {
             $tempcontextid = $tempfile->contextid;
         }
-        ///// Delete Image
-        /// Delete the file record
-        $DB->delete_records('quizaccess_exproctor', array('id' => $reportid));
-        /// Delete the actual file
+
+        // Delete Image
+        // Delete the file record
+        $DB->delete_records('quizaccess_exproctor_wb_logs', array('id' => $reportid));
+
+        // Delete the actual file
         $fs = get_file_storage();
-        $fs->delete_area_files($tempcontextid, 'quizaccess_exproctor', 'picture', $file_id);
-        var_dump($file_id);
+        $fs->delete_area_files($tempcontextid, 'quizaccess_exproctor', 'webcam_images', $file_id);
     }
 }
 
+# Delete single screen shot
+if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
+    && $log_action == "deletesinglescreenshot"
+) {
+    $logsql = "SELECT * FROM {quizaccess_exproctor_sc_logs} WHERE id= $reportid";
+    $records = $DB->get_records_sql($logsql);
+
+    if (count($records) > 0) {
+        $file_id = 0;
+        $tempcontextid = 0;
+
+        foreach ($records as $record) {
+            $file_id = $record->fileid;
+        }
+
+        $filesql = "SELECT * FROM {files} WHERE id=$file_id";
+        $usersfile = $DB->get_records_sql($filesql);
+
+        foreach ($usersfile as $tempfile) {
+            $tempcontextid = $tempfile->contextid;
+        }
+
+        // Delete Image
+        /// Delete the file record
+        $DB->delete_records('quizaccess_exproctor_sc_logs', array('id' => $reportid));
+
+        // Delete the actual file
+        $fs = get_file_storage();
+        $fs->delete_area_files($tempcontextid, 'quizaccess_exproctor', 'screen_shots', $file_id);
+    }
+}
 
 # View webcam shot
 if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $cmid != null && $courseid != null) {
@@ -286,7 +319,7 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
 
             foreach ($sqlexecuted as $info) {
                 $pictures .= $info->webcamshot
-                    ? '<a class="quiz-img-div" onclick="return confirm(`Are you sure want to delete this webcam picture?`)" href="?courseid=' . $courseid . '&quizid=' . $quizid . '&cmid=' . $cmid . '&reportid=' . $info->reportid . '&log_action=deletesingle">
+                    ? '<a class="quiz-img-div" onclick="return confirm(`Are you sure want to delete this webcam picture?`)" href="?courseid=' . $courseid . '&quizid=' . $quizid . '&cmid=' . $cmid . '&reportid=' . $info->reportid . '&log_action=deletesinglewebcampic">
                     <img title="Click to Delete" width="100" src="' . $info->webcamshot . '" alt="' . $info->firstname . ' ' . $info->lastname . '" />
                    </a>'
                     : '';
@@ -412,7 +445,7 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
 
             foreach ($sqlexecuted as $info) {
                 $pictures .= $info->screenshot
-                    ? '<a class="quiz-img-div" onclick="return confirm(`Are you sure want to delete this screen shot?`)" href="?courseid=' . $courseid . '&quizid=' . $quizid . '&cmid=' . $cmid . '&reportid=' . $info->reportid . '&log_action=deletesingle">
+                    ? '<a class="quiz-img-div" onclick="return confirm(`Are you sure want to delete this screen shot?`)" href="?courseid=' . $courseid . '&quizid=' . $quizid . '&cmid=' . $cmid . '&reportid=' . $info->reportid . '&log_action=deletesinglescreenshot">
                     <img title="Click to Delete" width="100" src="' . $info->screenshot . '" alt="' . $info->firstname . ' ' . $info->lastname . '" />
                    </a>'
                     : '';
