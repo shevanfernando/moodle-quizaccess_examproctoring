@@ -17,15 +17,15 @@
 /**
  * Plugin version and other meta-data are defined here.
  *
- * @package     quizaccess_examproctoring
+ * @package     quizaccess_exproctor
  * @copyright   2022 Shevan Thiranja Fernando <w.k.b.s.t.fernando@gmail.com>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'quizaccess_examproctoring';
+$plugin->component = 'quizaccess_exproctor';
 $plugin->release = '0.1.0';
-$plugin->version = 2022110700;
+$plugin->version = 2022112100;
 $plugin->requires = 2021051700;
 $plugin->maturity = MATURITY_ALPHA;

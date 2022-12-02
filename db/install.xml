@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="mod/quiz/accessrule/exproctor/db" VERSION="20221119"
+       COMMENT="XMLDB file for Moodle mod/quiz/accessrule/exproctor"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../../../../lib/xmldb/xmldb.xsd"
+>
+    <TABLES>
+        <TABLE NAME="quizaccess_exproctor" COMMENT="Stores the additional setting required by this accessrule">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+                <FIELD NAME="quizid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"
+                       COMMENT="Foreign key to quiz.id."/>
+                <FIELD NAME="webcamproctoringrequired" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+                       COMMENT="Boolean, if true, then the quiz required webcam validation."/>
+                <FIELD NAME="screenproctoringrequired" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+                       COMMENT="Boolean, if true, then the quiz required screen validation."/>
+                <FIELD NAME="proctoringmethod" TYPE="int" LENGTH="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+                       COMMENT="Exam proctoring method."/>
+                <FIELD NAME="screenshotdelay" TYPE="int" LENGTH="5" NOTNULL="true" DEFAULT="3" SEQUENCE="false"
+                       COMMENT="The delay between screenshots in seconds."/>
+                <FIELD NAME="screenshotwidth" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="230" SEQUENCE="false"
+                       COMMENT="The width of the screenshot image in px."/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="quizid" TYPE="foreign-unique" FIELDS="quizid" REFTABLE="quiz" REFFIELDS="id"/>
+            </KEYS>
+        </TABLE>
+        <TABLE NAME="quizaccess_exproctor_wb_logs" COMMENT="Stores all the webcam shots for validation">
+            <FIELDS>
+                <FIELD NAME="id" COMMENT="Primary key of the table" TYPE="int" LENGTH="10" NOTNULL="true"
+                       UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
+                <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Course id" PREVIOUS="id" NEXT="quizid"/>
+                <FIELD NAME="quizid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Quiz id" PREVIOUS="courseid" NEXT="userid"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
+                       COMMENT="User who validate identity" PREVIOUS="quizid" NEXT="webcampicture"/>
+                <FIELD NAME="webcamshot" TYPE="text" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Webcam photo used for validation purposes" PREVIOUS="userid" NEXT="attemptid"/>
+                <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="Attempt id of the current quiz" PREVIOUS="webcampicture" NEXT="fileid"/>
+                <FIELD NAME="fileid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="File table id" PREVIOUS="attemptid" NEXT="timecreated"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="Date/ time of webcam shot saved" PREVIOUS="fileid" NEXT="timemodified"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="Date/ time of webcam shot modified/ deleted" PREVIOUS="timecreated"
+                       NEXT="isquizfinished"/>
+                <FIELD NAME="isquizfinished" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+                       COMMENT="Boolean, if true, then webcam shots are not saving." PREVIOUS="timemodified"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+        </TABLE>
+        <TABLE NAME="quizaccess_exproctor_wbd_log" COMMENT="Logs for deleted webcam shots">
+            <FIELDS>
+                <FIELD NAME="id" COMMENT="Primary key of the table" TYPE="int" LENGTH="10" NOTNULL="true"
+                       UNSIGNED="true" SEQUENCE="true" NEXT="webcamshotid"/>
+                <FIELD NAME="webcamshotid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Webcam shot id" PREVIOUS="id" NEXT="userid"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
+                       COMMENT="User who deleted the webcam shot" PREVIOUS="webcamshotid" NEXT="timecreated"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="Date/ time of webcam shot deleted" PREVIOUS="userid"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="webcamshotid" TYPE="foreign-unique" FIELDS="webcamshotid" REFTABLE="exproctor_wb_logs"
+                     REFFIELDS="id"/>
+            </KEYS>
+        </TABLE>
+        <TABLE NAME="quizaccess_exproctor_sc_logs" COMMENT="Stores all the screen shots for validation">
+            <FIELDS>
+                <FIELD NAME="id" COMMENT="Primary key of the table" TYPE="int" LENGTH="10" NOTNULL="true"
+                       UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
+                <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Course id" PREVIOUS="id" NEXT="quizid"/>
+                <FIELD NAME="quizid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Quiz id" PREVIOUS="courseid" NEXT="userid"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
+                       COMMENT="User who validate identity" PREVIOUS="quizid" NEXT="webcampicture"/>
+                <FIELD NAME="screenshot" TYPE="text" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Screen shot used for validation purposes" PREVIOUS="userid" NEXT="attemptid"/>
+                <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="Attempt id of the current quiz" PREVIOUS="webcampicture" NEXT="fileid"/>
+                <FIELD NAME="fileid" TYPE="int" LENGTH="10" NOTNULL="false" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="File table id" PREVIOUS="attemptid" NEXT="timecreated"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="Date/ time of screen shot saved" PREVIOUS="fileid" NEXT="timemodified"/>
+                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="Date/ time of screen shot modified/ deleted" PREVIOUS="timecreated"
+                       NEXT="isquizfinished"/>
+                <FIELD NAME="isquizfinished" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
+                       COMMENT="Boolean, if true, then webcam shots are not saving." PREVIOUS="timemodified"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+        </TABLE>
+        <TABLE NAME="quizaccess_exproctor_scd_log" COMMENT="Logs for deleted screen shots">
+            <FIELDS>
+                <FIELD NAME="id" COMMENT="Primary key of the table" TYPE="int" LENGTH="10" NOTNULL="true"
+                       UNSIGNED="true" SEQUENCE="true" NEXT="screenshotid"/>
+                <FIELD NAME="screenshotid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Screen shot id" PREVIOUS="id" NEXT="userid"/>
+                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
+                       COMMENT="User who deleted the screen shot" PREVIOUS="screenshotid" NEXT="timecreated"/>
+                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="Date/ time of screen shot deleted" PREVIOUS="userid"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="screenshotid" TYPE="foreign-unique" FIELDS="screenshotid" REFTABLE="exproctor_sc_logs"
+                     REFFIELDS="id"/>
+            </KEYS>
+        </TABLE>
+    </TABLES>
+</XMLDB>

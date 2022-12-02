@@ -1,8 +1,10 @@
 # Exam Proctoring #
 
-TODO Describe the plugin shortly here.
+Exam Proctoring is a Moodle plugin that enables remote exam proctoring.
 
-TODO Provide more detailed description here.
+This Moodle plugin belongs to quizaccess category. Using this plugin, education 
+organization can conduct proctored exam via Moodle. This project developed as 
+my final year project.
 
 ## Installing via uploaded ZIP file ##
 
