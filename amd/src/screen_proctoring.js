@@ -1,32 +1,22 @@
 import $ from 'jquery';
 import Ajax from 'core/ajax';
-import {remove} from "./store_current_attempt";
 
-export const init = (props) => {
-    let isCameraAllowed = false;
+export const init = async(props) => {
+    let width = props.image_width; // We will scale the photo width to this
+    let height = 0; // This will be computed based on the input stream
 
-    window.console.log(props);
-
-    $('#id_submitbutton').prop("disabled", true);
-    $('#id_web_proctoring').on('change', function() {
-        if (this.checked && isCameraAllowed) {
-            $('#id_submitbutton').prop("disabled", false);
-        } else {
-            $('#id_submitbutton').prop("disabled", true);
-        }
-    });
+    let streaming = false;
 
     // Skip for summary page
     if (document.getElementById("page-mod-quiz-summary") !== null &&
         document.getElementById("page-mod-quiz-summary").innerHTML.length) {
         return false;
     }
-
     // Skip for review page
     if (document.getElementById("page-mod-quiz-review") !== null &&
         document.getElementById("page-mod-quiz-review").innerHTML.length) {
         $(Ajax).call({
-            methodname: "set_wb_quiz_status",
+            methodname: "set_sc_quiz_status",
             args: {
                 'courseid': props.courseid,
                 'userid': props.userid,
@@ -34,41 +24,37 @@ export const init = (props) => {
             }
         });
         props.is_quiz_started = false;
-        remove();
         return false;
     }
-
-    let width = props.image_width; // We will scale the photo width to this
-    let height = 0; // This will be computed based on the input stream
-
-    let streaming = false;
 
     if (props.is_quiz_started) {
         // eslint-disable-next-line max-len
         $('#mod_quiz_navblock').append(
-            '<div class="card-body p-3"><h3 class="no text-left">Webcam</h3> <br/>' +
-            '<video id="exproctor_video_wb">Video stream not available.</video>' +
-            '<canvas id="exproctor_canvas_wb" style="display:none;"></canvas>' +
-            '<div class="exproctor_output_wb" style="display:none;">' +
-            '<img id="exproctor_photo_wb" alt="The webcam capture will appear in this box."/></div></div>'
-        );
+            '<div class="card-body p-3" style="display: none"><h3 class="no text-left">Screen</h3> <br/>' +
+            '<video id="exproctor_video_sc">Screen stream not available.</video>' +
+            '<canvas id="exproctor_canvas_sc" style="display:none;"></canvas>' +
+            '<div class="exproctor_output_sc" style="display:none;">' +
+            '<img id="exproctor_photo_sc" alt="The picture will appear in this box."/></div></div>');
     }
 
-    let video = document.getElementById('exproctor_video_wb');
-    let canvas = document.getElementById('exproctor_canvas_wb');
-    let photo = document.getElementById('exproctor_photo_wb');
+    let video = document.getElementById('exproctor_video_sc');
+    let canvas = document.getElementById('exproctor_canvas_sc');
+    let photo = document.getElementById('exproctor_photo_sc');
 
     $("#id_submitbutton").click(function() {
         props.is_quiz_started = true;
-        setInterval(takepicture, props.screenshotdelay);
+        setInterval(takescreenshot, props.screenshotdelay);
     });
 
     navigator.mediaDevices
-        .getUserMedia({video: true, audio: false})
+        .getDisplayMedia({
+            video: {
+                cursor: "always"
+            }, audio: false
+        })
         .then((stream) => {
             video.srcObject = stream;
             video.play();
-            isCameraAllowed = true;
         })
         .catch((err) => {
             window.console.error(`An error occurred: ${err}`);
@@ -83,11 +69,12 @@ export const init = (props) => {
         photo.setAttribute("src", data);
     };
 
-    const takepicture = () => {
+    const takescreenshot = () => {
         props.id = localStorage.getItem("attemptId");
 
         if (props.is_quiz_started && props.id) {
             const context = canvas.getContext("2d");
+            window.console.log(props);
             if (width && height) {
                 canvas.width = width;
                 canvas.height = height;
@@ -97,16 +84,15 @@ export const init = (props) => {
                 photo.setAttribute("src", data);
                 props.webcampicture = data;
 
-                const api_function = 'quizaccess_exproctor_send_webcam_shot';
                 const params = {
                     'courseid': props.courseid,
                     'attemptid': props.id,
                     'quizid': props.quizid,
-                    'webcamshot': data,
+                    'screenshot': data,
                 };
 
                 const request = {
-                    methodname: api_function,
+                    methodname: 'quizaccess_exproctor_send_screen_shot',
                     args: params
                 };
 
@@ -117,12 +103,12 @@ export const init = (props) => {
                     if (data.warnings.length !== 0) {
                         if (video) {
                             Notification.addNotification({
-                                message: 'Something went wrong during taking the image.', type: 'error'
+                                message: 'Something went wrong during taking the screen-shot.', type: 'error'
                             });
                         }
                     }
                 }).fail((err) => {
-                    window.console.log("Webcam proctoring");
+                    window.console.log("Screen proctoring");
                     window.console.log(err);
                 });
             } else {
@@ -157,7 +143,7 @@ export const init = (props) => {
     }
 
     // const vidOff = () => {
-    //     video.srcObject.getVideoTracks().forEach((track) => track.stop());
+    //     captureStream.getTracks().forEach(track => track.stop());
     //     isCameraAllowed = false;
     // };
     //
