@@ -182,7 +182,7 @@ if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
 }
 
 
-# View webcam
+# View webcam shot
 if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $cmid != null && $courseid != null) {
 
     // Check if report if for some user.
@@ -235,26 +235,18 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
 
         $data[] = date("Y/M/d H:m:s", $info->timemodified);
 
-        if ($webcamproctoringrequired && $screenproctoringrequired) {
-            $data[] = '<a style="padding-bottom:5px" href="?courseid=' . $courseid .
-                '&quizid=' . $quizid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
-                get_string('webcam_report', 'quizaccess_exproctor') . '</a>' . '</br><a href="?courseid=' . $courseid .
-                '&quizid=' . $quizid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
-                get_string('screen_report', 'quizaccess_exproctor') . '</a>';
-        } elseif ($webcamproctoringrequired) {
+        if ($webcamproctoringrequired) {
             $data[] = '<a href="?courseid=' . $courseid .
                 '&quizid=' . $quizid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
                 get_string('webcam_report', 'quizaccess_exproctor') . '</a>';
-        } elseif ($screenproctoringrequired) {
-            $data[] = '<a href="?courseid=' . $courseid .
-                '&quizid=' . $quizid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
-                get_string('screen_report', 'quizaccess_exproctor') . '</a>';
         }
 
         $table->add_data($data);
     }
 
-    $table->finish_html();
+    if ($webcamproctoringrequired && !$screenproctoringrequired) {
+        $table->finish_html();
+    }
 
     // Print image results for webcam.
     if ($webcamproctoringrequired) {
@@ -310,6 +302,77 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
             $tablepictures->finish_html();
         }
     }
+} else {
+    // User has no permissions to view this page.
+    echo '<div class="box generalbox m-b-1 adminerror alert alert-danger p-y-1">' .
+        get_string('no_permission_report', 'quizaccess_exproctor') . '</div>';
+}
+
+# View screen shot
+if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $cmid != null && $courseid != null) {
+
+    // Check if report if for some user.
+    if ($studentid != null && $quizid != null && $courseid != null && $reportid != null) {
+        // Report for this user.
+        $sql = "SELECT e.id as reportid, e.userid as studentid, e.screenshot as screenshot, e.attemptid as attemptid,
+         e.timemodified as timemodified, u.firstname as firstname, u.lastname as lastname, u.email as email
+         from  {quizaccess_exproctor_sc_logs} e INNER JOIN {user} u  ON u.id = e.userid
+         WHERE e.courseid = '$courseid' AND e.quizid = '$quizid' AND u.id = '$studentid' AND e.id = '$reportid'";
+    }
+
+    if ($studentid == null && $quizid != null && $courseid != null) {
+        // Report for all users.
+        $sql = "SELECT  DISTINCT e.userid as studentid, u.firstname as firstname, u.lastname as lastname,
+                u.email as email, max(e.screenshot) as screenshot,max(e.id) as reportid, max(e.attemptid) as attemptid,
+                max(e.timemodified) as timemodified
+                from  {quizaccess_exproctor_sc_logs} e INNER JOIN {user} u ON u.id = e.userid
+                WHERE e.courseid = '$courseid' AND e.quizid = '$quizid'
+                group by e.userid, u.firstname, u.lastname, u.email";
+    }
+
+    // Print report.
+    $table = new flexible_table('exproctor-report-' . $COURSE->id . '-' . $cmid);
+
+    $table->define_columns(array('fullname', 'email', 'dateverified', 'actions'));
+    $table->define_headers(
+        array(
+            get_string('user'),
+            get_string('email'),
+            get_string('dateverified', 'quizaccess_exproctor'),
+            get_string('actions', 'quizaccess_exproctor')
+        )
+    );
+
+    $table->define_baseurl($url);
+
+    $table->set_attribute('cellpadding', '5');
+    $table->set_attribute('class', 'generaltable generalbox reporttable');
+    $table->setup();
+
+    // Prepare data.
+    $sqlexecuted = $DB->get_recordset_sql($sql);
+
+    foreach ($sqlexecuted as $info) {
+        $data = array();
+        $data[] = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $info->studentid .
+            '&course=' . $courseid . '" target="_blank">' . $info->firstname . ' ' . $info->lastname . '</a>';
+
+        $data[] = $info->email;
+
+        $data[] = date("Y/M/d H:m:s", $info->timemodified);
+
+        if ($screenproctoringrequired) {
+            $data[] = '<a href="?courseid=' . $courseid .
+                '&quizid=' . $quizid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
+                get_string('screen_report', 'quizaccess_exproctor') . '</a>';
+        }
+
+        $table->add_data($data);
+    }
+
+    if (!$webcamproctoringrequired && $screenproctoringrequired) {
+        $table->finish_html();
+    }
 
     // Print image results for screen shots.
     if ($screenproctoringrequired) {
@@ -329,13 +392,13 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
 
             $tablepictures->define_columns(
                 array(get_string('std_name', 'quizaccess_exproctor'),
-                    get_string('webcam_picture', 'quizaccess_exproctor'),
+                    get_string('screen_picture', 'quizaccess_exproctor'),
                     'Actions'
                 )
             );
             $tablepictures->define_headers(
                 array(get_string('std_name', 'quizaccess_exproctor'),
-                    get_string('webcam_picture', 'quizaccess_exproctor'),
+                    get_string('screen_picture', 'quizaccess_exproctor'),
                     get_string('actions', 'quizaccess_exproctor')
                 )
             );
