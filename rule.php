@@ -416,7 +416,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
         $context = context_module::instance($this->quiz->cmid, MUST_EXIST);
         if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id)) {
             # create a report.php
-            $httplink = \quizaccess_exproctor\link_generator::get_link($this->quiz->course, $this->quiz->cmid, false, is_https());
+            $httplink = \quizaccess_exproctor\link_generator::get_link($this->quiz->course, $this->quiz->id, $this->quiz->cmid, false, is_https());
 
             return $OUTPUT->single_button($httplink, get_string('pictures_report', 'quizaccess_exproctor'), 'get');
         }

@@ -58,10 +58,18 @@ class screenshot extends persistent
                 'type' => PARAM_INT,
                 'default' => '',
             ],
-            'webcampicture' => [
+            'webcamshot' => [
                 'type' => PARAM_TEXT,
             ],
-            'status' => [
+            'attemptid' => [
+                'type' => PARAM_INT,
+                'default' => 0,
+            ],
+            'fileid' => [
+                'type' => PARAM_INT,
+                'default' => 0,
+            ],
+            'timecreated' => [
                 'type' => PARAM_INT,
                 'default' => 0,
             ],
