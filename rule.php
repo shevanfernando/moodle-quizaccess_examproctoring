@@ -28,9 +28,15 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/mod/quiz/accessrule/accessrulebase.php');
 
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/external.php');
+
 class quizaccess_exproctor extends quiz_access_rule_base
 {
-    /** @var array options that should be used for opening the secure popup. */
+
+    /**
+     * Options that should be used for opening the secure popup
+     * @var array
+     */
     protected static $popupoptions = array(
         'left' => 0,
         'top' => 0,
@@ -57,10 +63,15 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     public static function make(quiz $quizobj, $timenow, $canignoretimelimits)
     {
-        if (empty($quizobj->get_quiz()->webcamproctoringrequired) && empty($quizobj->get_quiz()->screenproctoringrequired)) {
-            return null;
+        if (!empty($quizobj->get_quiz()->proctoringmethod)) {
+            if (empty($quizobj->get_quiz()->webcamproctoringrequired) && empty($quizobj->get_quiz()->screenproctoringrequired)) {
+                return null;
+            }
+
+            return new self($quizobj, $timenow);
         }
-        return new self($quizobj, $timenow);
+
+        return null;
     }
 
     /**
@@ -78,6 +89,16 @@ class quizaccess_exproctor extends quiz_access_rule_base
         // TODO: Remove this before push the code into git hub
         get_string_manager()->reset_caches();
 
+        $mform->addElement('select', 'proctoringmethod',
+            get_string('setting:proctoring_method', 'quizaccess_exproctor'),
+            array(
+                0 => get_string('setting:not_required', 'quizaccess_exproctor'),
+                1 => get_string('setting:proctoring_method_one', 'quizaccess_exproctor'),
+                2 => get_string('setting:proctoring_method_two', 'quizaccess_exproctor'),
+                3 => get_string('setting:proctoring_method_three', 'quizaccess_exproctor'),
+            ));
+        $mform->addHelpButton('proctoringmethod', 'proctoringmethod', 'quizaccess_exproctor');
+
         $mform->addElement('select', 'webcamproctoringrequired',
             get_string('webcamproctoringrequired', 'quizaccess_exproctor'),
             array(
@@ -85,6 +106,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
                 1 => get_string('setting:proctoring_required_option', 'quizaccess_exproctor'),
             ));
         $mform->addHelpButton('webcamproctoringrequired', 'webcamproctoringrequired', 'quizaccess_exproctor');
+
         $mform->addElement('select', 'screenproctoringrequired',
             get_string('screenproctoringrequired', 'quizaccess_exproctor'),
             array(
@@ -92,20 +114,21 @@ class quizaccess_exproctor extends quiz_access_rule_base
                 1 => get_string('setting:proctoring_required_option', 'quizaccess_exproctor'),
             ));
         $mform->addHelpButton('screenproctoringrequired', 'screenproctoringrequired', 'quizaccess_exproctor');
-        $mform->addElement('select', 'proctoringmethod',
-            get_string('setting:proctoring_method', 'quizaccess_exproctor'),
+
+        $mform->addElement('select', 'screenshotdelay',
+            get_string('setting:screenshot_delay', 'quizaccess_exproctor'),
             array(
-                0 => get_string('setting:proctoring_method_one', 'quizaccess_exproctor'),
-                1 => get_string('setting:proctoring_method_sec', 'quizaccess_exproctor'),
-                2 => get_string('setting:proctoring_method_three', 'quizaccess_exproctor'),
-                3 => get_string('setting:proctoring_method_four', 'quizaccess_exproctor'),
+                5 => get_string('setting:screenshotdelay_method_one', 'quizaccess_exproctor'),
+                10 => get_string('setting:screenshotdelay_method_two', 'quizaccess_exproctor'),
+                15 => get_string('setting:screenshotdelay_method_three', 'quizaccess_exproctor'),
+                20 => get_string('setting:screenshotdelay_method_four', 'quizaccess_exproctor'),
+                25 => get_string('setting:screenshotdelay_method_five', 'quizaccess_exproctor'),
+                30 => get_string('setting:screenshotdelay_method_six', 'quizaccess_exproctor'),
             ));
-        $mform->addHelpButton('proctoringmethod', 'proctoringmethod', 'quizaccess_exproctor');
-        $mform->addElement('text', 'screenshotdelay', get_string('setting:screenshot_delay', 'quizaccess_exproctor'));
-        $mform->setDefault('screenshotdelay', 3);
         $mform->addHelpButton('screenshotdelay', 'screenshotdelay', 'quizaccess_exproctor');
+
         $mform->addElement('text', 'screenshotwidth', get_string('setting:screenshot_width', 'quizaccess_exproctor'));
-        $mform->setDefault('screenshotwidth', 230);
+        $mform->setDefault('screenshotwidth', 320);
         $mform->addHelpButton('screenshotwidth', 'screenshotwidth', 'quizaccess_exproctor');
     }
 
@@ -214,40 +237,22 @@ class quizaccess_exproctor extends quiz_access_rule_base
     public function add_preflight_check_form_fields(mod_quiz_preflight_check_form $quizform, MoodleQuickForm $mform, $attemptid)
     {
         global $PAGE;
-        $data = $this->get_quiz_details();
+        $data = self::get_quiz_details();
 
-        $PAGE->requires->js_call_amd('quizaccess_exproctor/proctoring', 'init', array($data));
+        $data['is_quiz_started'] = false;
 
         // this only for debug the code.
         // TODO: Remove this before push the code into git hub
         get_string_manager()->reset_caches();
 
         if ($data["webcamproctoringrequired"] && $data["screenproctoringrequired"]) {
-            $this->get_screen_proctoring_form_fields($mform);
-            $this->get_webcam_proctoring_form_fields($mform);
+            $this->get_screen_proctoring_form_fields($mform, $data, $PAGE);
+            $this->get_webcam_proctoring_form_fields($mform, $data, $PAGE);
         } elseif ($data["screenproctoringrequired"]) {
-            $this->get_screen_proctoring_form_fields($mform);
+            $this->get_screen_proctoring_form_fields($mform, $data, $PAGE);
         } elseif ($data["webcamproctoringrequired"]) {
-            $this->get_webcam_proctoring_form_fields($mform);
+            $this->get_webcam_proctoring_form_fields($mform, $data, $PAGE);
         };
-    }
-
-    /**
-     * @return boolean whether this rule requires that the attemp (and review)
-     *      pages must be displayed in a pop-up window.
-     */
-    public function attempt_must_be_in_popup()
-    {
-        return true;
-    }
-
-    /**
-     * @return array any options that are required for showing the attempt page
-     *      in a popup window.
-     */
-    public function get_popup_options()
-    {
-        return self::$popupoptions;
     }
 
     /**
@@ -261,6 +266,8 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     private function get_quiz_details(): array
     {
+        global $USER;
+
         $response = [];
         $response['cmid'] = $this->quiz->cmid;
         $response['courseid'] = $this->quiz->course;
@@ -268,26 +275,77 @@ class quizaccess_exproctor extends quiz_access_rule_base
         $response['screenproctoringrequired'] = (bool)$this->quiz->screenproctoringrequired;
         $response['webcamproctoringrequired'] = (bool)$this->quiz->webcamproctoringrequired;
         $response['proctoringmethod'] = $this->quiz->proctoringmethod;
-        $response['screenshotdelay'] = $this->quiz->screenshotdelay;
-        $response['screenshotwidth'] = $this->quiz->screenshotwidth;
+        $response['userid'] = $USER->id;
+
+        $frequency = ((int)$this->quiz->screenshotdelay) * 1000;
+        if ($frequency == 0) {
+            $frequency = 30 * 1000;
+        }
+
+        $response["screenshotdelay"] = $frequency;
+
+        $image_width = (int)$this->quiz->screenshotwidth;
+        if ($image_width == 0) {
+            $image_width = 320;
+        }
+
+        $response['image_width'] = $image_width;
 
         return $response;
     }
 
-    private function get_screen_proctoring_form_fields($mform)
+    /**
+     * Screen settings for start attempt page
+     *
+     * @param $mform
+     * @param $data
+     * @return void
+     * @throws coding_exception
+     */
+    private function get_screen_proctoring_form_fields($mform, $data, $PAGE)
     {
         $mform->addElement('header', 'screenproctoringheader', get_string('openscreen', 'quizaccess_exproctor'));
         $mform->addElement('static', 'screenproctoringmessage', '', get_string('screenproctoringstatement', 'quizaccess_exproctor'));
         $mform->addElement('static', 'screenmessage', '', get_string('screen_html', 'quizaccess_exproctor'));
         $mform->addElement('checkbox', 'screen_proctoring', '', get_string('proctoringlabel', 'quizaccess_exproctor'));
+
+        $PAGE->requires->js_call_amd('quizaccess_exproctor/screen_proctoring', 'init', array($data));
     }
 
-    private function get_webcam_proctoring_form_fields($mform)
+    /**
+     * Webcam settings for start attempt page
+     *
+     * @param $mform
+     * @param $data
+     * @return void
+     * @throws coding_exception
+     */
+    private function get_webcam_proctoring_form_fields($mform, $data, $PAGE)
     {
         $mform->addElement('header', 'webproctoringheader', get_string('openwebcam', 'quizaccess_exproctor'));
         $mform->addElement('static', 'webproctoringmessage', '', get_string('webcamproctoringstatement', 'quizaccess_exproctor'));
         $mform->addElement('static', 'cammessage', '', get_string('cam_html', 'quizaccess_exproctor'));
         $mform->addElement('checkbox', 'web_proctoring', '', get_string('proctoringlabel', 'quizaccess_exproctor'));
+
+        $PAGE->requires->js_call_amd('quizaccess_exproctor/webcam_proctoring', 'init', array($data));
+    }
+
+    /**
+     * @return boolean whether this rule requires that the attemp (and review)
+     *      pages must be displayed in a pop-up window.
+     */
+    public function attempt_must_be_in_popup(): bool
+    {
+        return true;
+    }
+
+    /**
+     * @return array any options that are required for showing the attempt page
+     *      in a popup window.
+     */
+    public function get_popup_options(): array
+    {
+        return self::$popupoptions;
     }
 
     /**
@@ -302,14 +360,16 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     public function validate_preflight_check($data, $files, $errors, $attemptid)
     {
-        $values = $this->get_quiz_details();
+        $values = self::get_quiz_details();;
 
         if (empty($data['web_proctoring']) && $values['webcamproctoringrequired']) {
-            $errors['web_proctoring'] = get_string('youmustagree', 'quizaccess_exproctor');
+            $errors['web_proctoring'] = get_string('youmustagreeforwebcam', 'quizaccess_exproctor');
         }
+
         if (empty($data['screen_proctoring']) && $values['screenproctoringrequired']) {
-            $errors['screen_proctoring'] = get_string('youmustagree', 'quizaccess_exproctor');
+            $errors['screen_proctoring'] = get_string('youmustagreeforscreen', 'quizaccess_exproctor');
         }
+
         return $errors;
     }
 
@@ -324,7 +384,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     public function description()
     {
-        $data = $this->get_quiz_details();
+        $data = self::get_quiz_details();
 
         $proctoring_method = "";
 
@@ -373,7 +433,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     public function setup_attempt_page($page)
     {
-        $data = $this->get_quiz_details();
+        $data = self::get_quiz_details();
 
         $cmid = optional_param('cmid', '', PARAM_INT);
         $attempt = optional_param('attempt', '', PARAM_INT);
@@ -382,66 +442,49 @@ class quizaccess_exproctor extends quiz_access_rule_base
         $page->set_popup_notification_allowed(false); // Prevent message notifications.
         $page->set_heading($page->title);
 
-        global $DB, $COURSE, $USER;
         if ($cmid) {
-            $contextquiz = $DB->get_record('course_modules', array('id' => $cmid));
+            $page->requires->js_call_amd('quizaccess_exproctor/store_current_attempt', 'store', array($attempt));
+        }
 
-            //////// Get Image Frequency and Image Width ////////
+        global $USER;
 
-            $frequency = ((int)$data["screenshotdelay"]) * 1000;
-            if ($frequency == 0) {
-                $frequency = 3 * 1000;
+        $context = context_course::instance($data['courseid']);
+        $roles = get_user_roles($context, $data['userid'], true);
+        $role = key($roles);
+        $rolename = $roles[$role]->shortname;
+
+        if ($page->pagetype === 'mod-quiz-review' && $rolename !== 'student') {
+            $external = new quizaccess_exproctor_external();
+
+            if ($data["screenproctoringrequired"]) {
+                $external::set_sc_quiz_status($data['courseid'], $data['userid'], $data['quizid']);
             }
 
-            $image_width = (int)$data["screenshotwidth"];
-            if ($image_width == 0) {
-                $image_width = 230;
-            }
-
-            if ($data["webcamproctoringrequired"] && $data["screenproctoringrequired"]) {
-                $this->save_webcam_shots($COURSE, $contextquiz, $USER, $attempt, $DB, $frequency, $image_width, $page);
-                $this->save_screen_shots($COURSE, $contextquiz, $USER, $attempt, $DB, $frequency, $image_width, $page);
-            } elseif ($data["screenproctoringrequired"]) {
-                $this->save_screen_shots($COURSE, $contextquiz, $USER, $attempt, $DB, $frequency, $image_width, $page);
-            } elseif ($data["webcamproctoringrequired"]) {
-                $this->save_webcam_shots($COURSE, $contextquiz, $USER, $attempt, $DB, $frequency, $image_width, $page);
+            if ($data["webcamproctoringrequired"]) {
+                $external::set_wb_quiz_status($data['courseid'], $data['userid'], $data['quizid']);
             }
         }
     }
 
-    private function save_webcam_shots($COURSE, $contextquiz, $USER, $attempt, $DB, $frequency, $image_width, $page)
+    /**
+     * This is called when the current attempt at the quiz is finished. This is
+     * used, set quiz status of the webcam log and screen log tables.
+     */
+    public function current_attempt_finished()
     {
-        $record = new stdClass();
-        $record->courseid = $COURSE->id;
-        $record->quizid = $contextquiz->id;
-        $record->userid = $USER->id;
-        $record->webcampicture = '';
-        $record->status = $attempt;
-        $record->timemodified = time();
-        $record->id = $DB->insert_record('quizaccess_exproctor_wb_logs', $record, true);
+        global $USER, $PAGE;
+        $data = self::get_quiz_details();
 
-        $record->frequency = $frequency;
-        $record->image_width = $image_width;
-        $record->is_quiz_started = true;
+        $external = new quizaccess_exproctor_external();
 
-        $page->requires->js_call_amd('quizaccess_exproctor/proctoring', 'webcam_proctoring', array($record));
-    }
+        if ($data["screenproctoringrequired"]) {
+            $external::set_sc_quiz_status($data['courseid'], $USER->id, $data['quizid']);
+        }
 
-    private function save_screen_shots($COURSE, $contextquiz, $USER, $attempt, $DB, $frequency, $image_width, $page)
-    {
-        $record_sc = new stdClass();
-        $record_sc->courseid = $COURSE->id;
-        $record_sc->quizid = $contextquiz->id;
-        $record_sc->userid = $USER->id;
-        $record_sc->screenpicture = '';
-        $record_sc->status = $attempt;
-        $record_sc->timemodified = time();
-        $record_sc->id = $DB->insert_record('quizaccess_exproctor_sc_logs', $record_sc, true);
+        if ($data["webcamproctoringrequired"]) {
+            $external::set_wb_quiz_status($data['courseid'], $USER->id, $data['quizid']);
+        }
 
-        $record_sc->frequency = $frequency;
-        $record_sc->image_width = $image_width;
-        $record_sc->is_quiz_started = true;
-
-        $page->requires->js_call_amd('quizaccess_exproctor/proctoring', 'screen_proctoring', array($record_sc));
+        $PAGE->requires->js_call_amd('quizaccess_exproctor/store_current_attempt', 'remove', array());
     }
 }

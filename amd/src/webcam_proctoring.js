@@ -25,14 +25,6 @@ export const init = (props) => {
     // Skip for review page
     if (document.getElementById("page-mod-quiz-review") !== null &&
         document.getElementById("page-mod-quiz-review").innerHTML.length) {
-        $(Ajax).call({
-            methodname: "set_wb_quiz_status",
-            args: {
-                'courseid': props.courseid,
-                'userid': props.userid,
-                'quizid': props.quizid
-            }
-        });
         props.is_quiz_started = false;
         remove();
         return false;
