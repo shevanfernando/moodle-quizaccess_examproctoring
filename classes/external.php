@@ -186,7 +186,7 @@ class quizaccess_exproctor_external extends external_api
 
         if ($number_of_records == 0) {
             $record = new stdClass();
-            $record->filearea = 'picture';
+            $record->filearea = 'webcam_images';
             $record->component = 'quizaccess_exproctor';
             $record->filepath = '';
             $record->itemid = $params['attemptid'];
@@ -272,7 +272,7 @@ class quizaccess_exproctor_external extends external_api
             'contextid' => $contextid,
             'mimetype' => 'image/png',
             'component' => 'quizaccess_exproctor',
-            'filearea' => 'picture',
+            'filearea' => "{$record->filearea}",
             'filename' => "{$filename}"
         );
 
@@ -486,7 +486,7 @@ class quizaccess_exproctor_external extends external_api
 
         if ($number_of_records == 0) {
             $record = new stdClass();
-            $record->filearea = 'picture';
+            $record->filearea = 'screen_shots';
             $record->component = 'quizaccess_exproctor';
             $record->filepath = '';
             $record->itemid = $params['attemptid'];
