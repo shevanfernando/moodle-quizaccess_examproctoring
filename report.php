@@ -325,7 +325,7 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
                 foreach ($sqlexecuted as $info) {
                     $pictures .= $info->webcamshot
                         ? '<a class="quiz-img-div" onclick="return confirm(`Are you sure want to delete this webcam picture?`)" href="?courseid=' . $courseid . '&quizid=' . $quizid . '&cmid=' . $cmid . '&reportid=' . $info->reportid . '&log_action=deletesinglewebcampic">
-                    <img title="Click to Delete" width="100" src="' . $info->webcamshot . '" alt="' . $info->firstname . ' ' . $info->lastname . '" />
+                    <img title="Click to Delete" width="320" src="' . $info->webcamshot . '" alt="' . $info->firstname . ' ' . $info->lastname . '" />
                    </a>'
                         : '';
                 }
@@ -460,7 +460,7 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
                 foreach ($sqlexecuted as $info) {
                     $pictures .= $info->screenshot
                         ? '<a class="quiz-img-div" onclick="return confirm(`Are you sure want to delete this screen shot?`)" href="?courseid=' . $courseid . '&quizid=' . $quizid . '&cmid=' . $cmid . '&reportid=' . $info->reportid . '&log_action=deletesinglescreenshot">
-                    <img title="Click to Delete" width="100" src="' . $info->screenshot . '" alt="' . $info->firstname . ' ' . $info->lastname . '" />
+                    <img title="Click to Delete" width="320px" src="' . $info->screenshot . '" alt="' . $info->firstname . ' ' . $info->lastname . '" />
                    </a>'
                         : '';
                 }
