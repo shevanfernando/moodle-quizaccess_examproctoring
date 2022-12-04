@@ -12,6 +12,7 @@ export const init = async(props) => {
         document.getElementById("page-mod-quiz-summary").innerHTML.length) {
         return false;
     }
+
     // Skip for review page
     if (document.getElementById("page-mod-quiz-review") !== null &&
         document.getElementById("page-mod-quiz-review").innerHTML.length) {
@@ -33,24 +34,32 @@ export const init = async(props) => {
     let canvas = document.getElementById('exproctor_canvas_sc');
     let photo = document.getElementById('exproctor_photo_sc');
 
+    const get_screen_share_permission = () => {
+        return navigator.mediaDevices
+            .getDisplayMedia({
+                video: {
+                    cursor: "always"
+                }, audio: false
+            })
+            .then((stream) => {
+                video.srcObject = stream;
+                video.play();
+            })
+            .catch(() => {
+                alert("This quiz requires Screen Sharing permission to start!");
+                get_screen_share_permission();
+            });
+    };
+
     $("#id_submitbutton").click(function() {
         props.is_quiz_started = true;
+        takescreenshot();
         setInterval(takescreenshot, props.screenshotdelay);
     });
 
-    navigator.mediaDevices
-        .getDisplayMedia({
-            video: {
-                cursor: "always"
-            }, audio: false
-        })
-        .then((stream) => {
-            video.srcObject = stream;
-            video.play();
-        })
-        .catch((err) => {
-            window.console.error(`An error occurred: ${err}`);
-        });
+    $("[id^=single_button].btn.btn-primary").click(function() {
+        get_screen_share_permission();
+    });
 
     const clearphoto = () => {
         const context = canvas.getContext("2d");
@@ -100,8 +109,7 @@ export const init = async(props) => {
                         }
                     }
                 }).fail((err) => {
-                    window.console.log("Screen proctoring");
-                    window.console.log(err);
+                    window.console.log(`An error occurred (screen random): ${err}`);
                 });
             } else {
                 clearphoto();
@@ -133,14 +141,4 @@ export const init = async(props) => {
             false
         );
     }
-
-    // const vidOff = () => {
-    //     captureStream.getTracks().forEach(track => track.stop());
-    //     isCameraAllowed = false;
-    // };
-    //
-    // if (props.is_close) {
-    //     vidOff();
-    //     return false;
-    // }
 };
