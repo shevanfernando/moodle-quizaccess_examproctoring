@@ -57,15 +57,16 @@ function assign_exproctor_legacy_capabilities($capability, $legacyperms): bool
 /**
  * Create capabilities for ExProctor plugin
  *
+ * @param $ex_proctor_id
  * @return bool
  * @throws coding_exception
  * @throws dml_exception
  */
-function update_exproctor_capabilities(): bool
+function update_exproctor_capabilities($ex_proctor_id): bool
 {
     global $DB, $OUTPUT;
 
-    $component = 'quizaccess/exproctor';
+    $component = 'quizaccess_exproctor';
 
     $storedcaps = array();
 
@@ -168,6 +169,29 @@ function update_exproctor_capabilities(): bool
     // role assignments?
     capabilities_cleanup($component, $filecaps);
 
+    $systemcontext = context_system::instance();
+
+    $quiz_capabilities = array(
+        'mod/assign:view',
+        'mod/assign:grade',
+        'mod/assign:viewgrades',
+        'mod/assign:showhiddengrader',
+        'mod/assignment:view',
+        'mod/assignment:grade',
+        'mod/assignment:exportownsubmission',
+        'mod/quiz:view',
+        'mod/quiz:preview',
+        'mod/quiz:grade',
+        'mod/quiz:viewoverrides',
+        'mod/quiz:regrade',
+        'mod/quiz:viewreports'
+    );
+
+    foreach ($quiz_capabilities as $capability) {
+        // Add quiz access to the Proctor role
+        assign_capability($capability, 1, $ex_proctor_id, $systemcontext->id);
+    }
+
     // reset static caches
     accesslib_reset_role_cache();
 
@@ -218,7 +242,7 @@ function xmldb_quizaccess_exproctor_install()
     $ex_proctor_id = create_exproctor_role();
 
     // Now is the correct moment to install capabilities - after creation of legacy roles, but before assigning of roles
-    update_exproctor_capabilities();
+    update_exproctor_capabilities($ex_proctor_id);
 
     // Set up the context levels where you can assign each role.
     set_role_contextlevels($ex_proctor_id, array(CONTEXT_COURSE, CONTEXT_MODULE));
