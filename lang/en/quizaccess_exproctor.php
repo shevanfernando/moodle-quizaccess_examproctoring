@@ -25,7 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['pluginname'] = 'Exam Proctoring';
+$string['pluginname'] = 'ExProctor';
 $string['proctor:name'] = 'Exam Proctor';
 $string['proctor:short_name'] = 'proctor';
 $string['proctor:description'] = 'Proctor is a role of the ExProctor plugin. This role can be used to monitor students during exams.';
