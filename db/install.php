@@ -15,33 +15,33 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Implementation of the quizaccess_exproctor plugin.
+ * This file is executed right after the install.xml
  *
  * @package    quizaccess_exproctor
- * @copyright  2022 Shevan Fernando <w.k.b.s.t.fernando@gmail.com>
+ * @copyright  2022 Shevan Thiranja Fernando <w.k.b.s.t.fernando@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
- * Custom uninstallation procedure
+ * Custom installation procedure
  *
- * @return bool: only returns true
+ * @return void
+ * @throws coding_exception
  */
-
-function xmldb_quizaccess_exproctor_uninstall()
+function xmldb_quizaccess_exproctor_install()
 {
-    global $DB;
+    // Install the Exam Proctor role to system.
+    $ex_proctor_id = create_role(
+        get_string('proctor:name', 'quizaccess_exproctor'),
+        get_string('proctor:short_name', 'quizaccess_exproctor'),
+        get_string('proctor:description', 'quizaccess_exproctor'),
+        get_string('proctor:short_name', 'quizaccess_exproctor')
+    );
 
-    // Get role id
-    $role = $DB->get_record("role", array('shortname' => get_string('proctor:short_name', 'quizaccess_exproctor')));
-
-    // Delete proctor role
-    if (!delete_role($role->id)) {
-        // delete failed.
-        print_error('cannotdeleterolewithid', 'error', $baseurl, $roleid);
-    }
-
-    return true;
+    // Set up the context levels where you can assign each role.
+    set_role_contextlevels(
+        $ex_proctor_id,
+        array(CONTEXT_COURSE, CONTEXT_MODULE));
 }

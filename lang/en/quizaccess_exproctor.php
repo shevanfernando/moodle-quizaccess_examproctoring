@@ -26,6 +26,9 @@
 defined('MOODLE_INTERNAL') || die();
 
 $string['pluginname'] = 'Exam Proctoring';
+$string['proctor:name'] = 'Exam Proctor';
+$string['proctor:short_name'] = 'proctor';
+$string['proctor:description'] = 'Proctor is a role of the ExProctor plugin. This role can be used to monitor students during exams.';
 $string['exproctor:send_evidence'] = 'Send evidence files';
 $string['exproctor:get_evidence'] = 'Read evidence files';
 $string['exproctor:view_report'] = 'View proctoring report';
