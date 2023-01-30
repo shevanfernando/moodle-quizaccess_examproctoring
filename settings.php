@@ -26,6 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
+    get_string_manager()->reset_caches();
     $PAGE->requires->js_call_amd('quizaccess_exproctor/dynamic_settings', 'init');
 
     if ($ADMIN->fulltree) {
@@ -69,8 +70,8 @@ if ($hassiteconfig) {
 
         $settings->add(new admin_setting_configselect("quizaccess_exproctor/awsregion", get_string("settings:aws_region", "quizaccess_exproctor"), get_string("settings:aws_region_description", "quizaccess_exproctor"), $AWS_REGIONS["us-east-2"], $AWS_REGIONS));
 
-        $settings->add(new admin_setting_configtext("quizaccess_exproctor/awsaccessid", get_string("settings:aws_access_id", "quizaccess_exproctor"), get_string("settings:aws_access_id_description", "quizaccess_exproctor"), $value, PARAM_TEXT));
+        $settings->add(new admin_setting_configtext("quizaccess_exproctor/awsaccesskey", get_string("settings:aws_access_key", "quizaccess_exproctor"), get_string("settings:aws_access_key_description", "quizaccess_exproctor"), $value, PARAM_RAW_TRIMMED));
 
-        $settings->add(new admin_setting_configtext("quizaccess_exproctor/awsaccesskey", get_string("settings:aws_access_key", "quizaccess_exproctor"), get_string("settings:aws_access_key_description", "quizaccess_exproctor"), $value, PARAM_TEXT));
+        $settings->add(new admin_setting_configtext("quizaccess_exproctor/awssecretkey", get_string("settings:aws_secret_key", "quizaccess_exproctor"), get_string("settings:aws_secret_key_description", "quizaccess_exproctor"), $value, PARAM_RAW_TRIMMED));
     }
 }

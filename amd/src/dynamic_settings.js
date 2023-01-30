@@ -3,21 +3,51 @@ import $ from 'jquery';
 const settings = (getValue) => {
     if (getValue === "AWS(S3)") {
         $("#admin-awsregion").show();
-        $("#admin-awsaccessid").show();
+        $("#admin-awssecretkey").show();
         $("#admin-awsaccesskey").show();
+        $("[class='btn btn-primary']").prop("disabled", true);
     } else {
         $("#admin-awsregion").hide();
-        $("#admin-awsaccessid").hide();
+        $("#admin-awssecretkey").hide();
         $("#admin-awsaccesskey").hide();
+        $("[class='btn btn-primary']").prop("disabled", false);
+    }
+};
+
+const enable_submit_button = (storageMethod, s3AccessKey, s3SecretKey) => {
+    if (storageMethod === "AWS(S3)" &&
+        (s3AccessKey.val().length >= 16 && s3AccessKey.val().length <= 128) &&
+        (s3SecretKey.val().length >= 16 && s3SecretKey.val().length <= 128)) {
+        $("[class='btn btn-primary']").prop("disabled", false);
+    } else {
+        $("[class='btn btn-primary']").prop("disabled", true);
     }
 };
 
 export const init = () => {
+    const storageTextElement = $("#id_s_quizaccess_exproctor_storagemethod");
+    let storageMethod = storageTextElement.val();
+
     // Current selected value
-    settings($("#id_s_quizaccess_exproctor_storagemethod").val());
+    settings(storageMethod);
+
     // Event trigger when dropdown value change
-    $("#id_s_quizaccess_exproctor_storagemethod").change((e) => {
+    storageTextElement.change((e) => {
         const $this = $(e.currentTarget);
-        settings($this.val());
+        storageMethod = $this.val();
+        settings(storageMethod);
+    });
+
+    const s3AccessKey = $("#id_s_quizaccess_exproctor_awsaccesskey");
+    const s3SecretKey = $("#id_s_quizaccess_exproctor_awssecretkey");
+
+    // Event trigger when s3 access-key input field value change
+    s3AccessKey.on('input', function() {
+        enable_submit_button(storageMethod, s3AccessKey, s3SecretKey);
+    });
+
+    // Event trigger when s3 secret-key input field value change
+    s3SecretKey.on('input', function() {
+        enable_submit_button(storageMethod, s3AccessKey, s3SecretKey);
     });
 };
