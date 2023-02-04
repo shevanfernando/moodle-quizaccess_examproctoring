@@ -38,8 +38,8 @@ use Exception;
 
 class aws_s3
 {
-    private S3Client $s3Client;
-    private array $data;
+    private $s3Client;
+    private $data;
 
     /**
      * Constructor
