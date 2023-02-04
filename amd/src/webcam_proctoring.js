@@ -95,6 +95,7 @@ export const init = (props) => {
                     'attemptid': props.id,
                     'quizid': props.quizid,
                     'webcamshot': data,
+                    'bucketName': localStorage.getItem("bucketName")
                 };
 
                 const request = {
@@ -147,14 +148,4 @@ export const init = (props) => {
             false
         );
     }
-
-    // const vidOff = () => {
-    //     video.srcObject.getVideoTracks().forEach((track) => track.stop());
-    //     isCameraAllowed = false;
-    // };
-    //
-    // if (props.is_close) {
-    //     vidOff();
-    //     return false;
-    // }
 };
