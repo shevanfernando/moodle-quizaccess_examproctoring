@@ -172,19 +172,36 @@ class aws_s3
      *
      * @return string
      */
-    public function createBucket(): string
+    public function createBucket($attempt): string
     {
+        global $DB;
+
         try {
-            # Create the bucket name
-            $bucketName = md5(time());
+            $result = [];
 
-            // Create the bucket
-            $this->s3Client->createBucket([
-                'Bucket' => $bucketName,
-            ]);
+            foreach (["quizaccess_exproctor_wb_logs",
+                         "quizaccess_exproctor_sc_logs"] as $table) {
+                $r = $DB->get_records($table, array("attemptid" => $attempt));
 
-            // Poll the bucket until it is accessible
-            $this->s3Client->waitUntil('BucketExists', array('Bucket' => $bucketName));
+                $result = array_merge($result, $r);
+            }
+
+            if (empty($result)) {
+                # Create the bucket name
+                $bucketName = md5(time());
+
+                // Create the bucket
+                $this->s3Client->createBucket([
+                    'Bucket' => $bucketName,
+                ]);
+
+                // Poll the bucket until it is accessible
+                $this->s3Client->waitUntil('BucketExists', array('Bucket' => $bucketName));
+            } else {
+                $bucketName = empty($result[0]->screenshot) ? $result[0]->webcamshot : $result[0]->screenshot;
+                $bucketName = explode(".s3." . $this->data["awsregion"], $bucketName)[0];
+                $bucketName = str_replace("https://", "", $bucketName);
+            }
 
             return $bucketName;
         } catch (AwsException $e) {
