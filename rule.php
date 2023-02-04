@@ -29,6 +29,9 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/mod/quiz/accessrule/accessrulebase.php');
 
 require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/external.php');
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
+
+use quizaccess_exproctor\aws_s3;
 
 class quizaccess_exproctor extends quiz_access_rule_base
 {
@@ -38,17 +41,17 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * @var array
      */
     protected static $popupoptions = array(
-        'left' => 0,
-        'top' => 0,
-        'fullscreen' => true,
-        'scrollbars' => true,
-        'resizeable' => false,
+        'left'        => 0,
+        'top'         => 0,
+        'fullscreen'  => true,
+        'scrollbars'  => true,
+        'resizeable'  => false,
         'directories' => false,
-        'toolbar' => false,
-        'titlebar' => false,
-        'location' => false,
-        'status' => false,
-        'menubar' => false,
+        'toolbar'     => false,
+        'titlebar'    => false,
+        'location'    => false,
+        'status'      => false,
+        'menubar'     => false,
     );
 
     /**
@@ -118,7 +121,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
         $mform->addElement('select', 'screenshotdelay',
             get_string('setting:screenshot_delay', 'quizaccess_exproctor'),
             array(
-                5 => get_string('setting:screenshotdelay_method_one', 'quizaccess_exproctor'),
+                5  => get_string('setting:screenshotdelay_method_one', 'quizaccess_exproctor'),
                 10 => get_string('setting:screenshotdelay_method_two', 'quizaccess_exproctor'),
                 15 => get_string('setting:screenshotdelay_method_three', 'quizaccess_exproctor'),
                 20 => get_string('setting:screenshotdelay_method_four', 'quizaccess_exproctor'),
@@ -437,16 +440,22 @@ class quizaccess_exproctor extends quiz_access_rule_base
 
         $cmid = optional_param('cmid', '', PARAM_INT);
         $attempt = optional_param('attempt', '', PARAM_INT);
+        $bucketName = null;
 
         $page->set_title($this->quizobj->get_course()->shortname . ': ' . $page->title);
         $page->set_popup_notification_allowed(false); // Prevent message notifications.
         $page->set_heading($page->title);
 
-        if ($cmid) {
-            $page->requires->js_call_amd('quizaccess_exproctor/store_current_attempt', 'store', array($attempt));
+        $s3 = new aws_s3();
+
+        if ($s3->getData()['storagemethod'] == 'AWS(S3)') {
+            $bucketName = $s3->createBucket($attempt);
         }
 
-        global $USER;
+        if ($cmid) {
+            $page->requires->js_call_amd('quizaccess_exproctor/store_current_attempt', 'store', array($attempt,
+                $bucketName));
+        }
 
         $context = context_course::instance($data['courseid']);
         $roles = get_user_roles($context, $data['userid'], true);
@@ -477,6 +486,8 @@ class quizaccess_exproctor extends quiz_access_rule_base
 
         $external = new quizaccess_exproctor_external();
 
+        $PAGE->requires->js_call_amd('quizaccess_exproctor/store_current_attempt', 'remove', array());
+
         if ($data["screenproctoringrequired"]) {
             $external::set_sc_quiz_status($data['courseid'], $USER->id, $data['quizid']);
         }
@@ -484,7 +495,5 @@ class quizaccess_exproctor extends quiz_access_rule_base
         if ($data["webcamproctoringrequired"]) {
             $external::set_wb_quiz_status($data['courseid'], $USER->id, $data['quizid']);
         }
-
-        $PAGE->requires->js_call_amd('quizaccess_exproctor/store_current_attempt', 'remove', array());
     }
 }
