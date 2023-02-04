@@ -33,16 +33,19 @@ require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/aws_sdk/aws-autoloa
 use Aws\Exception\AwsException;
 use Aws\Result;
 use Aws\S3\S3Client;
+use dml_exception;
+use Exception;
 
 class aws_s3
 {
-    private $s3Client;
-    private $data;
+    private S3Client $s3Client;
+    private array $data;
 
     /**
      * Constructor
      *
-     * @throws \dml_exception
+     * @throws dml_exception
+     * @throws Exception
      */
     public function __construct()
     {
@@ -54,22 +57,26 @@ class aws_s3
             $this->data[$elements->name] = $elements->value;
         }
 
-        $this->s3Client = new S3Client([
-            'version'     => 'latest',
-            'region'      => $this->data['awsregion'],
-            'credentials' => [
-                'key'    => $this->data['awsaccesskey'],
-                'secret' => $this->data['awssecretkey']
-            ]
-        ]);
+        if (!empty($this->data)) {
+            $this->s3Client = new S3Client([
+                'version'     => 'latest',
+                'region'      => $this->data['awsregion'],
+                'credentials' => [
+                    'key'    => $this->data['awsaccesskey'],
+                    'secret' => $this->data['awssecretkey']
+                ]
+            ]);
+        } else {
+            throw new Exception('Error: there is no setting record related to the ExProctor plugin.');
+        }
     }
 
     /**
      * Get S3 Client
      *
-     * @return mixed
+     * @return S3Client
      */
-    public function getS3Client()
+    public function getS3Client(): S3Client
     {
         return $this->s3Client;
     }
@@ -85,10 +92,35 @@ class aws_s3
     }
 
     /**
+     *  Delete all the S3 Buckets
+     *
+     * @return bool|string
+     */
+    public function deleteBuckets()
+    {
+        try {
+            // Get all the Buckets in S3
+            $files = $this->s3Client->listBuckets();
+
+            foreach ($files['Buckets'] as $bucket) {
+                // Get bucket name
+                $bucketName = $bucket["Name"];
+
+                // Delete bucket
+                $this->deleteBucket($bucketName);
+            }
+
+            return true;
+        } catch (AwsException $e) {
+            return 'Error: ' . $e->getAwsErrorMessage();
+        }
+    }
+
+    /**
      *  Delete S3 Bucket
      *
      * @param $bucketName
-     * @return mixed|string|null
+     * @return bool|string
      */
     public function deleteBucket($bucketName)
     {
@@ -144,7 +176,7 @@ class aws_s3
     {
         try {
             # Create the bucket name
-            $bucketName = md5(time());;
+            $bucketName = md5(time());
 
             // Create the bucket
             $this->s3Client->createBucket([
