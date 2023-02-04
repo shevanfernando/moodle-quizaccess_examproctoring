@@ -24,24 +24,37 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+global $CFG;
+
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
+
+use quizaccess_exproctor\aws_s3;
+
 /**
  * Custom uninstallation procedure
  *
  * @return bool: only returns true
  */
-
-function xmldb_quizaccess_exproctor_uninstall()
+function xmldb_quizaccess_exproctor_uninstall(): bool
 {
-    global $DB;
+    try {
+        global $DB;
 
-    // Get role id
-    $role = $DB->get_record("role", array('shortname' => get_string('proctor:short_name', 'quizaccess_exproctor')));
+        // Get role id
+        $role = $DB->get_record("role", array('shortname' => get_string('proctor:short_name', 'quizaccess_exproctor')));
 
-    // Delete proctor role
-    if (!delete_role($role->id)) {
-        // delete failed.
-        print_error('cannotdeleterolewithid', 'error', $baseurl, $roleid);
+        // Delete proctor role
+        if (!delete_role($role->id)) {
+            // delete failed.
+            print_error('cannotdeleterolewithid', 'error', '', $role->id);
+        }
+
+        // Delete all the S3 bucket
+        $s3Client = new aws_s3();
+        $s3Client->deleteBuckets();
+
+        return true;
+    } catch (Exception $e) {
+        return true;
     }
-
-    return true;
 }
