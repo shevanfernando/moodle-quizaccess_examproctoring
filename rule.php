@@ -98,7 +98,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
                 0 => get_string('setting:not_required', 'quizaccess_exproctor'),
                 1 => get_string('setting:proctoring_method_one', 'quizaccess_exproctor'),
                 2 => get_string('setting:proctoring_method_two', 'quizaccess_exproctor'),
-                3 => get_string('setting:proctoring_method_three', 'quizaccess_exproctor'),
+//                3 => get_string('setting:proctoring_method_three', 'quizaccess_exproctor'),
             ));
         $mform->addHelpButton('proctoringmethod', 'proctoringmethod', 'quizaccess_exproctor');
 
