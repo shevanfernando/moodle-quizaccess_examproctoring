@@ -228,9 +228,14 @@ class quizaccess_exproctor_external extends external_api
         if ($number_of_records == 0) {
             $s3Client = new aws_s3();
 
+            if ($type == 'screen') {
+                $data = $params['screenshot'];
+            } else {
+                $data = $params['webcamshot'];
+            }
+
             $settings = $s3Client->getData();
 
-            $data = $params['screenshot'];
             $attemptid = $params['attemptid'];
             $courseid = $params['courseid'];
 
