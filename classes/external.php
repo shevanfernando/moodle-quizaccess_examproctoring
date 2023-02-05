@@ -267,7 +267,11 @@ class quizaccess_exproctor_external extends external_api
             $record->courseid = $params['courseid'];
             $record->quizid = $params['quizid'];
             $record->userid = $USER->id;
-            $record->screenshot = "{$output['url']}";
+            if ($type == 'screen') {
+                $record->screenshot = "{$output['url']}";
+            } else {
+                $record->webcamshot = "{$output['url']}";
+            }
             $record->attemptid = $params['attemptid'];
             $record->fileid = "{$output['file_id']}";
             $record->timecreated = time();
