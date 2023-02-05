@@ -199,14 +199,19 @@ class aws_s3
                 $this->s3Client->waitUntil('BucketExists', array('Bucket' => $bucketName));
             } else {
                 $bucketName = empty($result[0]->screenshot) ? $result[0]->webcamshot : $result[0]->screenshot;
-                $bucketName = explode(".s3." . $this->data["awsregion"], $bucketName)[0];
-                $bucketName = str_replace("https://", "", $bucketName);
+                $bucketName = $this->getBucketNameUsingUrl($bucketName);
             }
 
             return $bucketName;
         } catch (AwsException $e) {
             return 'Error: ' . $e->getAwsErrorMessage();
         }
+    }
+
+    private function getBucketNameUsingUrl(string $bucketName)
+    {
+        $bucketName = explode(".s3." . $this->data["awsregion"], $bucketName)[0];
+        return str_replace("https://", "", $bucketName);
     }
 
     /**
@@ -227,6 +232,26 @@ class aws_s3
                 'Body'        => $imageData,
                 'ContentType' => 'image/png'
             ]);
+        } catch (AwsException $e) {
+            return 'Error: ' . $e->getAwsErrorMessage();
+        }
+    }
+
+    public function getImage(string $url, $fileName)
+    {
+        try {
+            $bucketName = $this->getBucketNameUsingUrl($url);
+
+            //Creating a presigned URL
+            $cmd = $this->s3Client->getCommand('GetObject', [
+                'Bucket' => $bucketName,
+                'Key'    => $fileName . '.png'
+            ]);
+
+            $request = $this->s3Client->createPresignedRequest($cmd, '+20 minutes');
+
+            // Get the actual presigned-url
+            return (string)$request->getUri();
         } catch (AwsException $e) {
             return 'Error: ' . $e->getAwsErrorMessage();
         }
