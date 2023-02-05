@@ -83,3 +83,4 @@ $string['setting:screenshotdelay_method_three'] = '15 Seconds';
 $string['setting:screenshotdelay_method_four'] = '20 Seconds';
 $string['setting:screenshotdelay_method_five'] = '25 Seconds';
 $string['setting:screenshotdelay_method_six'] = '30 Seconds';
+$string['setting:frozen_message'] = 'This quiz already has attempts. Therefore ExProctor plugin settings can no longer be updated.';
