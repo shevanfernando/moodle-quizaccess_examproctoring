@@ -90,6 +90,7 @@ export const init = async(props) => {
                     'attemptid': props.id,
                     'quizid': props.quizid,
                     'screenshot': data,
+                    'bucketName': localStorage.getItem("bucketName"),
                 };
 
                 const request = {
