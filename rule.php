@@ -31,6 +31,7 @@ require_once($CFG->dirroot . '/mod/quiz/accessrule/accessrulebase.php');
 require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/external.php');
 require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
 
+use core\output\notification;
 use quizaccess_exproctor\aws_s3;
 
 class quizaccess_exproctor extends quiz_access_rule_base
@@ -88,6 +89,8 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     public static function add_settings_form_fields(mod_quiz_mod_form $quizform, MoodleQuickForm $mform)
     {
+        global $OUTPUT;
+
         // this only for debug the code.
         // TODO: Remove this before push the code into git hub
         get_string_manager()->reset_caches();
@@ -133,6 +136,40 @@ class quizaccess_exproctor extends quiz_access_rule_base
         $mform->addElement('text', 'screenshotwidth', get_string('setting:screenshot_width', 'quizaccess_exproctor'));
         $mform->setDefault('screenshotwidth', 320);
         $mform->addHelpButton('screenshotwidth', 'screenshotwidth', 'quizaccess_exproctor');
+
+        // Display notification about locked settings.
+        if (self::is_exproctor_settings_locked($quizform->get_instance())) {
+            $notify = new notification(
+                get_string('setting:frozen_message', 'quizaccess_exproctor'),
+                notification::NOTIFY_WARNING
+            );
+
+            $notifyelement = $mform->createElement('html', $OUTPUT->render($notify));
+            $mform->insertElementBefore($notifyelement, 'quizpassword');
+
+            // Freeze elements
+            $mform->freeze('proctoringmethod');
+            $mform->freeze('webcamproctoringrequired');
+            $mform->freeze('screenproctoringrequired');
+            $mform->freeze('screenshotdelay');
+            $mform->freeze('screenshotwidth');
+        }
+    }
+
+
+    /**
+     * Check if settings is locked.
+     *
+     * @param string $quizid Quiz Id
+     * @return bool
+     */
+    private static function is_exproctor_settings_locked(string $quizid): bool
+    {
+        if (empty($quizid)) {
+            return false;
+        }
+
+        return quiz_has_attempts($quizid);
     }
 
     /**
