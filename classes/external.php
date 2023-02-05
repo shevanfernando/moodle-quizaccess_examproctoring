@@ -438,15 +438,24 @@ class quizaccess_exproctor_external extends external_api
                       'userid'   => $userid), 'id DESC');
         }
 
+        $s3Client = new aws_s3();
+
         $returnedwebcamhosts = array();
 
         foreach ($records as $record) {
             if ($record->webcamshot !== '') {
+
+                $url = $record->webcamshot;
+
+                if ($record->storagemethod == "AWS(S3)") {
+                    $url = $s3Client->getImage($url, $record->fileid);
+                }
+
                 $returnedwebcamhosts[] = array(
                     'courseid'     => $record->courseid,
                     'quizid'       => $record->quizid,
                     'userid'       => $record->userid,
-                    'webcamshot'   => $record->webcamshot,
+                    'webcamshot'   => $url,
                     'fileid'       => $record->fileid,
                     'timecreated'  => $record->timecreated,
                     'timemodified' => $record->timemodified,
@@ -636,15 +645,23 @@ class quizaccess_exproctor_external extends external_api
                       'userid'   => $userid), 'id DESC');
         }
 
+        $s3Client = new aws_s3();
+
         $returnedscreenhosts = array();
 
         foreach ($records as $record) {
             if ($record->screenshot !== '') {
+                $url = $record->screenshot;
+
+                if ($record->storagemethod == "AWS(S3)") {
+                    $url = $s3Client->getImage($url, $record->fileid);
+                }
+
                 $returnedscreenhosts[] = array(
                     'courseid'     => $record->courseid,
                     'quizid'       => $record->quizid,
                     'userid'       => $record->userid,
-                    'screenshot'   => $record->screenshot,
+                    'screenshot'   => $url,
                     'fileid'       => $record->fileid,
                     'timecreated'  => $record->timecreated,
                     'timemodified' => $record->timemodified,
