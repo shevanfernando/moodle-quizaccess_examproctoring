@@ -48,10 +48,15 @@
                        COMMENT="Date/ time of webcam shot modified/ deleted" PREVIOUS="timecreated"
                        NEXT="isquizfinished"/>
                 <FIELD NAME="isquizfinished" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
-                       COMMENT="Boolean, if true, then webcam shots are not saving." PREVIOUS="timemodified"/>
+                       COMMENT="Boolean, if true, then webcam shots are not saving." PREVIOUS="timemodified"
+                       NEXT="exproctorid"/>
+                <FIELD NAME="exproctorid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"
+                       COMMENT="Foreign key to quizaccess_exproctor." PREVIOUS="isquizfinished"/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="exproctorid" TYPE="foreign-unique" FIELDS="exproctorid" REFTABLE="quizaccess_exproctor"
+                     REFFIELDS="id"/>
             </KEYS>
         </TABLE>
         <TABLE NAME="quizaccess_exproctor_wbd_log" COMMENT="Logs for deleted webcam shots">
@@ -93,10 +98,15 @@
                        COMMENT="Date/ time of screen shot modified/ deleted" PREVIOUS="timecreated"
                        NEXT="isquizfinished"/>
                 <FIELD NAME="isquizfinished" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
-                       COMMENT="Boolean, if true, then webcam shots are not saving." PREVIOUS="timemodified"/>
+                       COMMENT="Boolean, if true, then webcam shots are not saving." PREVIOUS="timemodified"
+                       NEXT="exproctorid"/>
+                <FIELD NAME="exproctorid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"
+                       COMMENT="Foreign key to quizaccess_exproctor." PREVIOUS="isquizfinished"/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="exproctorid" TYPE="foreign-unique" FIELDS="exproctorid" REFTABLE="quizaccess_exproctor"
+                     REFFIELDS="id"/>
             </KEYS>
         </TABLE>
         <TABLE NAME="quizaccess_exproctor_scd_log" COMMENT="Logs for deleted screen shots">
