@@ -27,6 +27,10 @@ global $CFG, $DB, $PAGE, $OUTPUT, $USER;
 require_once(__DIR__ . '/../../../../config.php');
 require_once($CFG->dirroot . '/lib/tablelib.php');
 
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
+
+use quizaccess_exproctor\aws_s3;
+
 // Get vars.
 $courseid = required_param('courseid', PARAM_INT);
 $cmid = required_param('cmid', PARAM_INT);
@@ -52,8 +56,8 @@ $screenproctoringrequired = (bool)$proctoring->screenproctoringrequired;
 
 $params = array(
     'courseid' => $courseid,
-    'userid' => $studentid,
-    'cmid' => $cmid
+    'userid'   => $studentid,
+    'cmid'     => $cmid
 );
 
 if ($studentid) {
@@ -97,7 +101,9 @@ if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
 ) {
     // Delete images
     // Remove logs from quizaccess_exproctor_wb_logs
-    $DB->delete_records('quizaccess_exproctor_wb_logs', array('courseid' => $courseid, 'quizid' => $quizid, 'userid' => $studentid));
+    $DB->delete_records('quizaccess_exproctor_wb_logs', array('courseid' => $courseid,
+                                                              'quizid'   => $quizid,
+                                                              'userid'   => $studentid));
 
     $filesql = 'SELECT * FROM {files} WHERE userid IN (' . $studentid . ') AND contextid IN (' . $context->id . ') AND component = \'quizaccess_exproctor\' AND filearea = \'webcam_images\'';
     $usersfile = $DB->get_records_sql($filesql);
@@ -111,8 +117,8 @@ if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
         '/mod/quiz/accessrule/exproctor/report.php',
         array(
             'courseid' => $courseid,
-            'quizid' => $quizid,
-            'cmid' => $cmid
+            'quizid'   => $quizid,
+            'cmid'     => $cmid
         )
     );
     redirect($url2, 'Images deleted!', -11);
@@ -128,7 +134,9 @@ if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
 ) {
     // Delete images
     // Remove logs from quizaccess_exproctor_sc_logs
-    $DB->delete_records('quizaccess_exproctor_sc_logs', array('courseid' => $courseid, 'quizid' => $quizid, 'userid' => $studentid));
+    $DB->delete_records('quizaccess_exproctor_sc_logs', array('courseid' => $courseid,
+                                                              'quizid'   => $quizid,
+                                                              'userid'   => $studentid));
 
     $filesql = 'SELECT * FROM {files} WHERE userid IN (' . $studentid . ') AND contextid IN (' . $context->id . ') AND component = \'quizaccess_exproctor\' AND filearea = \'screen_shots\'';
     $usersfile = $DB->get_records_sql($filesql);
@@ -143,8 +151,8 @@ if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
         '/mod/quiz/accessrule/exproctor/report.php',
         array(
             'courseid' => $courseid,
-            'quizid' => $quizid,
-            'cmid' => $cmid
+            'quizid'   => $quizid,
+            'cmid'     => $cmid
         )
     );
 
@@ -221,7 +229,7 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
         // Check if report if for some user.
         if ($studentid != null && $quizid != null && $courseid != null && $reportid != null) {
             // Report for this user.
-            $sql = "SELECT e.id as reportid, e.userid as studentid, e.webcamshot as webcamshot, e.attemptid as attemptid,
+            $sql = "SELECT e.id as reportid, e.userid as studentid, e.webcamshot as webcamshot, e.storagemethod as storagemethod, e.fileid as fileid, e.attemptid as attemptid,
          e.timemodified as timemodified, u.firstname as firstname, u.lastname as lastname, u.email as email
          from  {quizaccess_exproctor_wb_logs} e INNER JOIN {user} u  ON u.id = e.userid
          WHERE e.courseid = '$courseid' AND e.quizid = '$quizid' AND u.id = '$studentid' AND e.id = '$reportid'";
@@ -230,7 +238,7 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
         if ($studentid == null && $quizid != null && $courseid != null) {
             // Report for all users.
             $sql = "SELECT  DISTINCT e.userid as studentid, u.firstname as firstname, u.lastname as lastname,
-                u.email as email, max(e.webcamshot) as webcamshot,max(e.id) as reportid, max(e.attemptid) as attemptid,
+                u.email as email, max(e.webcamshot) as webcamshot, e.storagemethod as storagemethod, e.fileid as fileid,max(e.id) as reportid, max(e.attemptid) as attemptid,
                 max(e.timemodified) as timemodified
                 from  {quizaccess_exproctor_wb_logs} e INNER JOIN {user} u ON u.id = e.userid
                 WHERE e.courseid = '$courseid' AND e.quizid = '$quizid'
@@ -240,7 +248,10 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
         // Print report.
         $table = new flexible_table('exproctor-report-' . $COURSE->id . '-' . $cmid);
 
-        $table->define_columns(array('fullname', 'email', 'dateverified', 'actions'));
+        $table->define_columns(array('fullname',
+            'email',
+            'dateverified',
+            'actions'));
         $table->define_headers(
             array(
                 get_string('user'),
@@ -258,6 +269,8 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
 
         // Prepare data.
         $sqlexecuted = $DB->get_recordset_sql($sql);
+
+        $s3Client = new aws_s3();
 
         foreach ($sqlexecuted as $info) {
             $data = array();
@@ -285,14 +298,15 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
         if ($studentid != null && $quizid != null && $courseid != null && $reportid != null) {
 
             $data = array();
-            $sql = "SELECT e.id as reportid, e.userid as studentid, e.webcamshot as webcamshot, e.attemptid as attemptid,
+            $sql = "SELECT e.id as reportid, e.userid as studentid, e.webcamshot as webcamshot, e.storagemethod as storagemethod, e.fileid as fileid, e.attemptid as attemptid,
         e.timemodified as timemodified, u.firstname as firstname, u.lastname as lastname, u.email as email
         from {quizaccess_exproctor_wb_logs} e INNER JOIN {user} u  ON u.id = e.userid
         WHERE e.courseid = '$courseid' AND e.quizid = '$quizid' AND u.id = '$studentid'";
 
             $sqlexecuted = $DB->get_recordset_sql($sql);
 
-            $get_records_count = $DB->get_records('quizaccess_exproctor_wb_logs', array('quizid' => $quizid, 'courseid' => $courseid));
+            $get_records_count = $DB->get_records('quizaccess_exproctor_wb_logs', array('quizid'   => $quizid,
+                                                                                        'courseid' => $courseid));
 
             echo '<hr>';
 
@@ -322,10 +336,16 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
                 $tablepictures->setup();
                 $pictures = '';
 
+                if ($info->storagemethod === 'AWS(S3)') {
+                    $url = $s3Client->getImage($info->webcamshot, $info->fileid);
+                } else {
+                    $url = $info->webcamshot;
+                }
+
                 foreach ($sqlexecuted as $info) {
-                    $pictures .= $info->webcamshot
+                    $pictures .= $url
                         ? '<a class="quiz-img-div" onclick="return confirm(`Are you sure want to delete this webcam picture?`)" href="?courseid=' . $courseid . '&quizid=' . $quizid . '&cmid=' . $cmid . '&reportid=' . $info->reportid . '&log_action=deletesinglewebcampic">
-                    <img title="Click to Delete" width="320" src="' . $info->webcamshot . '" alt="' . $info->firstname . ' ' . $info->lastname . '" />
+                    <img title="Click to Delete" width="320" src="' . $url . '" alt="' . $info->firstname . ' ' . $info->lastname . '" />
                    </a>'
                         : '';
                 }
@@ -355,7 +375,7 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
         // Check if report if for some user.
         if ($studentid != null && $quizid != null && $courseid != null && $reportid != null) {
             // Report for this user.
-            $sql = "SELECT e.id as reportid, e.userid as studentid, e.screenshot as screenshot, e.attemptid as attemptid,
+            $sql = "SELECT e.id as reportid, e.userid as studentid, e.screenshot as screenshot, e.storagemethod as storagemethod, e.fileid as fileid, e.attemptid as attemptid,
          e.timemodified as timemodified, u.firstname as firstname, u.lastname as lastname, u.email as email
          from  {quizaccess_exproctor_sc_logs} e INNER JOIN {user} u  ON u.id = e.userid
          WHERE e.courseid = '$courseid' AND e.quizid = '$quizid' AND u.id = '$studentid' AND e.id = '$reportid'";
@@ -364,7 +384,7 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
         if ($studentid == null && $quizid != null && $courseid != null) {
             // Report for all users.
             $sql = "SELECT  DISTINCT e.userid as studentid, u.firstname as firstname, u.lastname as lastname,
-                u.email as email, max(e.screenshot) as screenshot,max(e.id) as reportid, max(e.attemptid) as attemptid,
+                u.email as email, max(e.screenshot) as screenshot, e.storagemethod as storagemethod, e.fileid as fileid,max(e.id) as reportid, max(e.attemptid) as attemptid,
                 max(e.timemodified) as timemodified
                 from  {quizaccess_exproctor_sc_logs} e INNER JOIN {user} u ON u.id = e.userid
                 WHERE e.courseid = '$courseid' AND e.quizid = '$quizid'
@@ -374,7 +394,10 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
         // Print report.
         $table = new flexible_table('exproctor-report-' . $COURSE->id . '-' . $cmid);
 
-        $table->define_columns(array('fullname', 'email', 'dateverified', 'actions'));
+        $table->define_columns(array('fullname',
+            'email',
+            'dateverified',
+            'actions'));
         $table->define_headers(
             array(
                 get_string('user'),
@@ -392,6 +415,8 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
 
         // Prepare data.
         $sqlexecuted = $DB->get_recordset_sql($sql);
+
+        $s3Client = new aws_s3();
 
         foreach ($sqlexecuted as $info) {
             $data = array();
@@ -420,14 +445,15 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
         if ($studentid != null && $cmid != null && $courseid != null && $reportid != null) {
 
             $data = array();
-            $sql = "SELECT e.id as reportid, e.userid as studentid, e.screenshot as screenshot, e.attemptid as attemptid,
+            $sql = "SELECT e.id as reportid, e.userid as studentid, e.screenshot as screenshot, e.storagemethod as storagemethod, e.fileid as fileid, e.attemptid as attemptid,
         e.timemodified as timemodified, u.firstname as firstname, u.lastname as lastname, u.email as email
         from {quizaccess_exproctor_sc_logs} e INNER JOIN {user} u  ON u.id = e.userid
         WHERE e.courseid = '$courseid' AND e.quizid = '$quizid' AND u.id = '$studentid'";
 
             $sqlexecuted = $DB->get_recordset_sql($sql);
 
-            $get_records_count = $DB->get_records('quizaccess_exproctor_sc_logs', array('quizid' => $quizid, 'courseid' => $courseid));
+            $get_records_count = $DB->get_records('quizaccess_exproctor_sc_logs', array('quizid'   => $quizid,
+                                                                                        'courseid' => $courseid));
 
 
             echo '<hr>';
@@ -457,10 +483,16 @@ if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $
                 $tablepictures->setup();
                 $pictures = '';
 
+                if ($info->storagemethod === 'AWS(S3)') {
+                    $url = $s3Client->getImage($info->screenshot, $info->fileid);
+                } else {
+                    $url = $info->screenshot;
+                }
+
                 foreach ($sqlexecuted as $info) {
-                    $pictures .= $info->screenshot
+                    $pictures .= $url
                         ? '<a class="quiz-img-div" onclick="return confirm(`Are you sure want to delete this screen shot?`)" href="?courseid=' . $courseid . '&quizid=' . $quizid . '&cmid=' . $cmid . '&reportid=' . $info->reportid . '&log_action=deletesinglescreenshot">
-                    <img title="Click to Delete" width="320px" src="' . $info->screenshot . '" alt="' . $info->firstname . ' ' . $info->lastname . '" />
+                    <img title="Click to Delete" width="320px" src="' . $url . '" alt="' . $info->firstname . ' ' . $info->lastname . '" />
                    </a>'
                         : '';
                 }
