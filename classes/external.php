@@ -160,14 +160,13 @@ class quizaccess_exproctor_external extends external_api
      * @param $attemptid
      * @param $quizid
      * @param $webcamshot
+     * @param $bucketName
      * @return array
      * @throws dml_exception
      * @throws invalid_parameter_exception
      */
     public static function send_webcam_shot($courseid, $attemptid, $quizid, $webcamshot, $bucketName): array
     {
-        global $DB, $USER;
-
         $table_name = 'quizaccess_exproctor_wb_logs';
 
         // Validate the params
@@ -182,76 +181,9 @@ class quizaccess_exproctor_external extends external_api
             )
         );
 
-        // get last record and check the quiz is finished or not
-        $conditions = array('courseid'       => $params['courseid'],
-                            'attemptid'      => $params['attemptid'],
-                            'quizid'         => $params['quizid'],
-                            'userid'         => $USER->id,
-                            'isquizfinished' => true);
+        $params["filearea"] = "webcam_images";
 
-        $warnings = array();
-        $id = null;
-
-        $number_of_records = $DB->count_records($table_name, $conditions);
-
-        if ($number_of_records == 0) {
-            $s3Client = new aws_s3();
-
-            $settings = $s3Client->getData();
-
-            $data = $params['webcamshot'];
-            $type = 'webcam';
-            $attemptid = $params['attemptid'];
-            $courseid = $params['courseid'];
-
-            if ($settings["storagemethod"] == 'Local') {
-
-                $record = new stdClass();
-                $record->filearea = 'webcam_images';
-                $record->component = 'quizaccess_exproctor';
-                $record->filepath = '';
-                $record->itemid = $params['attemptid'];
-                $record->license = '';
-                $record->author = '';
-
-                $context = context_module::instance($params['quizid']);
-
-                $fs = get_file_storage();
-                $record->filepath = file_correct_filepath($record->filepath);
-
-                $output = self::get_url_and_file_id($data, $type, $attemptid, $USER->id, $params['courseid'], $context->id, $record, $fs);
-            } else {
-                list(, $data) = explode(';', $data);
-                list(, $data) = explode(',', $data);
-                $data = base64_decode($data);
-                $filename = $type . '-' . $attemptid . '-' . $USER->id . '-' . $courseid . '-' . time() . rand(1, 1000) . '.png';
-
-                $result = $s3Client->saveImage($params['bucketName'], $data, $filename);
-
-                $output = array(
-                    'url'     => $result['ObjectURL'],
-                    'file_id' => explode(".", $filename)[0]
-                );
-            }
-
-            $record = new stdClass();
-            $record->courseid = $params['courseid'];
-            $record->quizid = $params['quizid'];
-            $record->userid = $USER->id;
-            $record->webcamshot = "{$output['url']}";
-            $record->attemptid = $params['attemptid'];
-            $record->fileid = "{$output['file_id']}";
-            $record->timecreated = time();
-            $record->timemodified = time();
-            $id = $DB->insert_record($table_name, $record, true);
-        } else {
-            $warnings[] = "Quiz already finished!";
-        }
-
-        $result = array();
-        $result['id'] = $id;
-        $result['warnings'] = $warnings;
-        return $result;
+        return self::store_image($params, "webcam", $table_name);
     }
 
     /**
@@ -270,6 +202,86 @@ class quizaccess_exproctor_external extends external_api
                 'bucketName' => new external_value(PARAM_TEXT, 'S3 Bucket name', VALUE_REQUIRED),
             )
         );
+    }
+
+    /**
+     * Store image
+     *
+     * @throws dml_exception
+     */
+    private static function store_image($params, $type, $table_name): array
+    {
+        global $USER, $DB;
+
+        // get last record and check the quiz is finished or not
+        $conditions = array('courseid'       => $params['courseid'],
+                            'attemptid'      => $params['attemptid'],
+                            'quizid'         => $params['quizid'],
+                            'userid'         => $USER->id,
+                            'isquizfinished' => true);
+
+        $warnings = array();
+        $id = null;
+
+        $number_of_records = $DB->count_records($table_name, $conditions);
+
+        if ($number_of_records == 0) {
+            $s3Client = new aws_s3();
+
+            $settings = $s3Client->getData();
+
+            $data = $params['screenshot'];
+            $attemptid = $params['attemptid'];
+            $courseid = $params['courseid'];
+
+            if ($settings["storagemethod"] == 'Local') {
+                $record = new stdClass();
+                $record->filearea = $params["filearea"];
+                $record->component = 'quizaccess_exproctor';
+                $record->filepath = '';
+                $record->itemid = $params['attemptid'];
+                $record->license = '';
+                $record->author = '';
+
+                $context = context_module::instance($params['quizid']);
+
+                $fs = get_file_storage();
+                $record->filepath = file_correct_filepath($record->filepath);
+
+                $output = self::get_url_and_file_id($data, $type, $attemptid, $USER->id, $courseid, $context->id, $record, $fs);
+            } else {
+                list(, $data) = explode(';', $data);
+                list(, $data) = explode(',', $data);
+                $data = base64_decode($data);
+                $filename = $type . '-' . $attemptid . '-' . $USER->id . '-' . $courseid . '-' . time() . rand(1, 1000) . '.png';
+
+                $result = $s3Client->saveImage($params['bucketName'], $data, $filename);
+
+                $output = array(
+                    'url'     => $result['ObjectURL'],
+                    'file_id' => explode(".", $filename)[0]
+                );
+            }
+
+            $record = new stdClass();
+            $record->courseid = $params['courseid'];
+            $record->quizid = $params['quizid'];
+            $record->userid = $USER->id;
+            $record->screenshot = "{$output['url']}";
+            $record->attemptid = $params['attemptid'];
+            $record->fileid = "{$output['file_id']}";
+            $record->timecreated = time();
+            $record->timemodified = time();
+            $record->storagemethod = $settings["storagemethod"];
+            $id = $DB->insert_record($table_name, $record, true);
+        } else {
+            $warnings[] = "Quiz already finished!";
+        }
+
+        $result = array();
+        $result['id'] = $id;
+        $result['warnings'] = $warnings;
+        return $result;
     }
 
     /**
@@ -491,14 +503,13 @@ class quizaccess_exproctor_external extends external_api
      * @param $attemptid
      * @param $quizid
      * @param $screenshot
+     * @param $bucketName
      * @return array
      * @throws dml_exception
      * @throws invalid_parameter_exception
      */
-    public static function send_screen_shot($courseid, $attemptid, $quizid, $screenshot): array
+    public static function send_screen_shot($courseid, $attemptid, $quizid, $screenshot, $bucketName): array
     {
-        global $DB, $USER;
-
         $table_name = 'quizaccess_exproctor_sc_logs';
 
         // Validate the params
@@ -509,55 +520,13 @@ class quizaccess_exproctor_external extends external_api
                 'attemptid'  => $attemptid,
                 'quizid'     => $quizid,
                 'screenshot' => $screenshot,
+                'bucketName' => $bucketName,
             )
         );
 
-        // get last record and check the quiz is finished or not
-        $conditions = array('courseid'       => $params['courseid'],
-                            'attemptid'      => $params['attemptid'],
-                            'quizid'         => $params['quizid'],
-                            'userid'         => $USER->id,
-                            'isquizfinished' => true);
+        $params["filearea"] = "screen_shots";
 
-        $warnings = array();
-        $id = null;
-
-        $number_of_records = $DB->count_records($table_name, $conditions);
-
-        if ($number_of_records == 0) {
-            $record = new stdClass();
-            $record->filearea = 'screen_shots';
-            $record->component = 'quizaccess_exproctor';
-            $record->filepath = '';
-            $record->itemid = $params['attemptid'];
-            $record->license = '';
-            $record->author = '';
-
-            $context = context_module::instance($params['quizid']);
-
-            $fs = get_file_storage();
-            $record->filepath = file_correct_filepath($record->filepath);
-
-            $data = self::get_url_and_file_id($params['screenshot'], 'screen', $params['attemptid'], $USER->id, $params['courseid'], $context->id, $record, $fs);
-
-            $record = new stdClass();
-            $record->courseid = $params['courseid'];
-            $record->quizid = $params['quizid'];
-            $record->userid = $USER->id;
-            $record->screenshot = "{$data['url']}";
-            $record->attemptid = $params['attemptid'];
-            $record->fileid = $data['file_id'];
-            $record->timecreated = time();
-            $record->timemodified = time();
-            $id = $DB->insert_record($table_name, $record, true);
-        } else {
-            $warnings[] = "Quiz already finished!";
-        }
-
-        $result = array();
-        $result['id'] = $id;
-        $result['warnings'] = $warnings;
-        return $result;
+        return self::store_image($params, "screen", $table_name);
     }
 
     /**
@@ -573,6 +542,7 @@ class quizaccess_exproctor_external extends external_api
                 'attemptid'  => new external_value(PARAM_INT, 'attempt id', VALUE_REQUIRED),
                 'quizid'     => new external_value(PARAM_INT, 'quiz id', VALUE_REQUIRED),
                 'screenshot' => new external_value(PARAM_RAW, 'screen shot', VALUE_REQUIRED),
+                'bucketName' => new external_value(PARAM_TEXT, 'S3 Bucket name', VALUE_REQUIRED),
             )
         );
     }
