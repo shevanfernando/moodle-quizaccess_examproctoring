@@ -53,8 +53,8 @@ $string['openwebcam'] = 'Allow your webcam to continue';
 $string['openscreen'] = 'Chose what to share';
 $string['webcamproctoringstatement'] = 'This exam requires webcam validation process. <br />(Please allow your web browser to access your camera).';
 $string['screenproctoringstatement'] = 'This exam requires screen validation process. <br />(Please select screen to share).';
-$string['cam_html'] = '<div class="exproctor_camera"> <video id="exproctor_video_wb" autoplay="true", muted>Video stream not available.</video></div> <canvas id="exproctor_canvas_wb" style="display:none;"> </canvas> <img style="display:none;" id="exproctor_photo_wb" alt="The webcam capture will appear in this box."/>';
-$string['screen_html'] = '<div class="exproctor_screen"> <video id="exproctor_video_sc" autoplay="true", muted>Screen stream not available.</video></div> <canvas id="exproctor_canvas_sc" style="display:none;"> </canvas> <img style="display:none;" id="exproctor_photo_sc" alt="The screen capture will appear in this box."/>';
+$string['cam_html'] = '<div class="exproctor_camera"> <video id="exproctor_video_wb" autoplay muted>Video stream not available.</video></div> <canvas id="exproctor_canvas_wb" style="display:none;"> </canvas> <img style="display:none;" id="exproctor_photo_wb" alt="The webcam capture will appear in this box."/>';
+$string['screen_html'] = '<div class="exproctor_screen"> <video id="exproctor_video_sc" autoplay muted>Screen stream not available.</video></div> <canvas id="exproctor_canvas_sc" style="display:none;"> </canvas> <img style="display:none;" id="exproctor_photo_sc" alt="The screen capture will appear in this box."/>';
 $string['proctoringlabel'] = 'I agree with the validation process.';
 $string['youmustagreeforwebcam'] = 'You must agree to webcam validate before continue your attempt.';
 $string['youmustagreeforscreen'] = 'You must agree to screen validate before continue your attempt.';
@@ -64,6 +64,7 @@ $string['proctoringheader'] = '<strong>To continue with this quiz attempt, pleas
 $string['webcam_report'] = 'View webcam shots';
 $string['screen_report'] = 'View screen shots';
 $string['no_permission_report'] = 'You don\'t have permission to review validation reports.';
+$string['no_permission_to_delete_report'] = 'You don\'t have permission to delete the validation reports.';
 $string['proctoring_reports'] = 'Identity validation report for: ';
 $string['proctoring_reports_desc'] = 'In this report you will find all the images of the students which are taken during the exam. Now you can validate their exam.';
 $string['dateverified'] = 'Date and time';
@@ -76,7 +77,6 @@ $string['pictures_screen_no_report'] = 'There is no screen evidence data for thi
 $string['std_name'] = 'Student Name';
 $string['webcam_picture'] = 'Captured Webcam Pictures';
 $string['screen_picture'] = 'Captured Screen shots';
-$string['quizaccess_exproctor'] = 'Quizaccess Exam Proctoring';
 $string['setting:screenshotdelay_method_one'] = '5 Seconds';
 $string['setting:screenshotdelay_method_two'] = '10 Seconds';
 $string['setting:screenshotdelay_method_three'] = '15 Seconds';
