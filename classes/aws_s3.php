@@ -208,9 +208,9 @@ class aws_s3
         }
     }
 
-    public function getBucketNameUsingUrl(string $bucketName)
+    public function getBucketNameUsingUrl(string $url)
     {
-        $bucketName = explode(".s3." . $this->data["awsregion"], $bucketName)[0];
+        $bucketName = explode(".s3." . $this->data["awsregion"], $url)[0];
         return str_replace("https://", "", $bucketName);
     }
 
