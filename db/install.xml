@@ -26,7 +26,7 @@
                 <KEY NAME="quizid" TYPE="foreign-unique" FIELDS="quizid" REFTABLE="quiz" REFFIELDS="id"/>
             </KEYS>
         </TABLE>
-        <TABLE NAME="quizaccess_exproctor_wb_logs" COMMENT="Stores all the webcam shots for validation">
+        <TABLE NAME="quizaccess_exproctor_evid" COMMENT="Stores all the webcam shots for validation">
             <FIELDS>
                 <FIELD NAME="id" COMMENT="Primary key of the table" TYPE="int" LENGTH="10" NOTNULL="true"
                        UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
@@ -35,11 +35,11 @@
                 <FIELD NAME="quizid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
                        COMMENT="Quiz id" PREVIOUS="courseid" NEXT="userid"/>
                 <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
-                       COMMENT="User who validate identity" PREVIOUS="quizid" NEXT="webcampicture"/>
-                <FIELD NAME="webcamshot" TYPE="text" NOTNULL="false" UNSIGNED="false" SEQUENCE="false"
-                       COMMENT="Webcam photo used for validation purposes" PREVIOUS="userid" NEXT="attemptid"/>
+                       COMMENT="User who validate identity" PREVIOUS="quizid" NEXT="url"/>
+                <FIELD NAME="url" TYPE="text" NOTNULL="false" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Url for saved file" PREVIOUS="userid" NEXT="attemptid"/>
                 <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
-                       COMMENT="Attempt id of the current quiz" PREVIOUS="webcampicture" NEXT="fileid"/>
+                       COMMENT="Attempt id of the current quiz" PREVIOUS="url" NEXT="fileid"/>
                 <FIELD NAME="fileid" TYPE="text" NOTNULL="false" UNSIGNED="true" SEQUENCE="false"
                        COMMENT="File table id or File name" PREVIOUS="attemptid" NEXT="timecreated"/>
                 <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
@@ -52,73 +52,27 @@
                        NEXT="storagemethod"/>
                 <FIELD NAME="storagemethod" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Storage method."
                        PREVIOUS="isquizfinished"/>
-            </FIELDS>
-            <KEYS>
-                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-            </KEYS>
-        </TABLE>
-        <TABLE NAME="quizaccess_exproctor_wbd_log" COMMENT="Logs for deleted webcam shots">
-            <FIELDS>
-                <FIELD NAME="id" COMMENT="Primary key of the table" TYPE="int" LENGTH="10" NOTNULL="true"
-                       UNSIGNED="true" SEQUENCE="true" NEXT="webcamshotid"/>
-                <FIELD NAME="webcamshotid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
-                       COMMENT="Webcam shot id" PREVIOUS="id" NEXT="userid"/>
-                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
-                       COMMENT="User who deleted the webcam shot" PREVIOUS="webcamshotid" NEXT="timecreated"/>
-                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
-                       COMMENT="Date/ time of webcam shot deleted" PREVIOUS="userid"/>
-            </FIELDS>
-            <KEYS>
-                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-                <KEY NAME="webcamshotid" TYPE="foreign-unique" FIELDS="webcamshotid" REFTABLE="exproctor_wb_logs"
-                     REFFIELDS="id"/>
-            </KEYS>
-        </TABLE>
-        <TABLE NAME="quizaccess_exproctor_sc_logs" COMMENT="Stores all the screen shots for validation">
-            <FIELDS>
-                <FIELD NAME="id" COMMENT="Primary key of the table" TYPE="int" LENGTH="10" NOTNULL="true"
-                       UNSIGNED="true" SEQUENCE="true" NEXT="courseid"/>
-                <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
-                       COMMENT="Course id" PREVIOUS="id" NEXT="quizid"/>
-                <FIELD NAME="quizid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
-                       COMMENT="Quiz id" PREVIOUS="courseid" NEXT="userid"/>
-                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
-                       COMMENT="User who validate identity" PREVIOUS="quizid" NEXT="webcampicture"/>
-                <FIELD NAME="screenshot" TYPE="text" NOTNULL="false" UNSIGNED="false" SEQUENCE="false"
-                       COMMENT="Screen shot used for validation purposes" PREVIOUS="userid" NEXT="attemptid"/>
-                <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
-                       COMMENT="Attempt id of the current quiz" PREVIOUS="webcampicture" NEXT="fileid"/>
-                <FIELD NAME="fileid" TYPE="text" NOTNULL="false" UNSIGNED="true" SEQUENCE="false"
-                       COMMENT="File table id or File name" PREVIOUS="attemptid" NEXT="timecreated"/>
-                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
-                       COMMENT="Date/ time of screen shot saved" PREVIOUS="fileid" NEXT="timemodified"/>
-                <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
-                       COMMENT="Date/ time of screen shot modified/ deleted" PREVIOUS="timecreated"
-                       NEXT="isquizfinished"/>
-                <FIELD NAME="isquizfinished" TYPE="int" LENGTH="2" NOTNULL="true" DEFAULT="0" SEQUENCE="false"
-                       COMMENT="Boolean, if true, then webcam shots are not saving." PREVIOUS="timemodified"
-                       NEXT="exproctorid"/>
-                <FIELD NAME="storagemethod" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Storage method."
+                <FIELD NAME="evidencetype" TYPE="text" NOTNULL="true" SEQUENCE="false" COMMENT="Evidence type."
                        PREVIOUS="isquizfinished"/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             </KEYS>
         </TABLE>
-        <TABLE NAME="quizaccess_exproctor_scd_log" COMMENT="Logs for deleted screen shots">
+        <TABLE NAME="quizaccess_exproctor_eviddel" COMMENT="Logs for deleted webcam shots">
             <FIELDS>
                 <FIELD NAME="id" COMMENT="Primary key of the table" TYPE="int" LENGTH="10" NOTNULL="true"
-                       UNSIGNED="true" SEQUENCE="true" NEXT="screenshotid"/>
-                <FIELD NAME="screenshotid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
-                       COMMENT="Screen shot id" PREVIOUS="id" NEXT="userid"/>
+                       UNSIGNED="true" SEQUENCE="true" NEXT="evidenceid"/>
+                <FIELD NAME="evidenceid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Evidence id" PREVIOUS="id" NEXT="userid"/>
                 <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
-                       COMMENT="User who deleted the screen shot" PREVIOUS="screenshotid" NEXT="timecreated"/>
+                       COMMENT="User who deleted the webcam shot" PREVIOUS="evidenceid" NEXT="timecreated"/>
                 <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
-                       COMMENT="Date/ time of screen shot deleted" PREVIOUS="userid"/>
+                       COMMENT="Date/ time of webcam shot deleted" PREVIOUS="userid"/>
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-                <KEY NAME="screenshotid" TYPE="foreign-unique" FIELDS="screenshotid" REFTABLE="exproctor_sc_logs"
+                <KEY NAME="evidenceid" TYPE="foreign-unique" FIELDS="evidenceid" REFTABLE="quizaccess_exproctor_evid"
                      REFFIELDS="id"/>
             </KEYS>
         </TABLE>
