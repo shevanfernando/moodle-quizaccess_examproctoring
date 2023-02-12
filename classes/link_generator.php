@@ -24,6 +24,8 @@
 
 namespace quizaccess_exproctor;
 
+use coding_exception;
+use moodle_exception;
 use moodle_url;
 
 defined('MOODLE_INTERNAL') || die();
@@ -39,20 +41,25 @@ class link_generator
      * @param string $courseid
      * @param string $quizid
      * @param string $cmid
-     * @param $proctoring
-     * @param $secure
+     * @param bool $proctoring
+     * @param bool $secure
      * @return string
-     * @throws \coding_exception
-     * @throws \moodle_exception
+     * @throws coding_exception
+     * @throws moodle_exception
      */
-    public static function get_link(string $courseid, string $quizid, string $cmid, $proctoring = false, $secure = true): string
-    {
+    public static function get_link(string $courseid, string $quizid,
+                                    string $cmid, bool $proctoring = false,
+                                    bool   $secure = true
+    ): string {
         // Check of course module exists.
         get_coursemodule_from_id('quiz', $cmid, 0, false, MUST_EXIST);
 
-        $url = new moodle_url('/mod/quiz/accessrule/exproctor/report.php?courseid=' . $courseid . '&cmid=' . $cmid . '&quizid=' . $quizid);
+        $url =
+            new moodle_url('/mod/quiz/accessrule/exproctor/report.php?courseid=' . $courseid . '&cmid=' . $cmid . '&quizid=' . $quizid
+            );
         if ($proctoring) {
-            $secure ? $url->set_scheme('proctorings') : $url->set_scheme('proctoring');
+            $secure ? $url->set_scheme('proctorings'
+            ) : $url->set_scheme('proctoring');
         } else {
             $secure ? $url->set_scheme('https') : $url->set_scheme('http');
         }
