@@ -35,15 +35,17 @@
                 <FIELD NAME="quizid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
                        COMMENT="Quiz id" PREVIOUS="courseid" NEXT="userid"/>
                 <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
-                       COMMENT="User who validate identity" PREVIOUS="quizid" NEXT="url"/>
-                <FIELD NAME="url" TYPE="text" NOTNULL="false" UNSIGNED="false" SEQUENCE="false"
-                       COMMENT="Url for saved file" PREVIOUS="userid" NEXT="attemptid"/>
+                       COMMENT="User who validate identity" PREVIOUS="quizid" NEXT="attemptid"/>
                 <FIELD NAME="attemptid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
-                       COMMENT="Attempt id of the current quiz" PREVIOUS="url" NEXT="fileid"/>
+                       COMMENT="Attempt id of the current quiz" PREVIOUS="userid" NEXT="fileid"/>
                 <FIELD NAME="fileid" TYPE="text" NOTNULL="false" UNSIGNED="true" SEQUENCE="false"
-                       COMMENT="File table id or File name" PREVIOUS="attemptid" NEXT="timecreated"/>
+                       COMMENT="File table id" PREVIOUS="attemptid" NEXT="s3filename"/>
+                <FIELD NAME="s3filename" TYPE="text" NOTNULL="false" UNSIGNED="true" SEQUENCE="false"
+                       COMMENT="S3 bucket file name" PREVIOUS="fileid" NEXT="url"/>
+                <FIELD NAME="url" TYPE="text" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
+                       COMMENT="Url for saved file" PREVIOUS="s3filename" NEXT="timecreated"/>
                 <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
-                       COMMENT="Date/ time of webcam shot saved" PREVIOUS="fileid" NEXT="timemodified"/>
+                       COMMENT="Date/ time of webcam shot saved" PREVIOUS="url" NEXT="timemodified"/>
                 <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
                        COMMENT="Date/ time of webcam shot modified/ deleted" PREVIOUS="timecreated"
                        NEXT="isquizfinished"/>
@@ -57,6 +59,11 @@
             </FIELDS>
             <KEYS>
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+                <KEY NAME="courseid" TYPE="foreign-unique" FIELDS="courseid" REFTABLE="course" REFFIELDS="id"/>
+                <KEY NAME="quizid" TYPE="foreign-unique" FIELDS="quizid" REFTABLE="quiz" REFFIELDS="id"/>
+                <KEY NAME="userid" TYPE="foreign-unique" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+                <KEY NAME="attemptid" TYPE="foreign-unique" FIELDS="attemptid" REFTABLE="quiz_attempts" REFFIELDS="id"/>
+                <KEY NAME="fileid" TYPE="foreign-unique" FIELDS="fileid" REFTABLE="files" REFFIELDS="id"/>
             </KEYS>
         </TABLE>
     </TABLES>
