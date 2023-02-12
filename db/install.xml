@@ -59,22 +59,5 @@
                 <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
             </KEYS>
         </TABLE>
-        <TABLE NAME="quizaccess_exproctor_eviddel" COMMENT="Logs for deleted webcam shots">
-            <FIELDS>
-                <FIELD NAME="id" COMMENT="Primary key of the table" TYPE="int" LENGTH="10" NOTNULL="true"
-                       UNSIGNED="true" SEQUENCE="true" NEXT="evidenceid"/>
-                <FIELD NAME="evidenceid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" SEQUENCE="false"
-                       COMMENT="Evidence id" PREVIOUS="id" NEXT="userid"/>
-                <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="false" DEFAULT="0" SEQUENCE="false"
-                       COMMENT="User who deleted the webcam shot" PREVIOUS="evidenceid" NEXT="timecreated"/>
-                <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="false"
-                       COMMENT="Date/ time of webcam shot deleted" PREVIOUS="userid"/>
-            </FIELDS>
-            <KEYS>
-                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-                <KEY NAME="evidenceid" TYPE="foreign-unique" FIELDS="evidenceid" REFTABLE="quizaccess_exproctor_evid"
-                     REFFIELDS="id"/>
-            </KEYS>
-        </TABLE>
     </TABLES>
 </XMLDB>
