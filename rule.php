@@ -551,6 +551,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     public function setup_attempt_page($page)
     {
+        // TODO: Check this function
         $data = self::get_quiz_details();
 
         $cmid = optional_param('cmid', '', PARAM_INT);
@@ -584,15 +585,9 @@ class quizaccess_exproctor extends quiz_access_rule_base
         if ($page->pagetype === 'mod-quiz-review' && $rolename !== 'student') {
             $external = new quizaccess_exproctor_external();
 
-            if ($data["screen_proctoring_required"]) {
-                $external::set_sc_quiz_status($data['courseid'],
-                                              $data['userid'], $data['quizid']
-                );
-            }
-
-            if ($data["webcam_proctoring_required"]) {
-                $external::set_wb_quiz_status($data['courseid'],
-                                              $data['userid'], $data['quizid']
+            if ($data["screen_proctoring_required"] || $data["webcam_proctoring_required"]) {
+                $external::set_quiz_status($data['courseid'], $data['userid'],
+                                           $data['quizid']
                 );
             }
         }
@@ -614,15 +609,9 @@ class quizaccess_exproctor extends quiz_access_rule_base
                                          'remove', array()
             );
 
-            if ($data["screen_proctoring_required"]) {
-                $external::set_sc_quiz_status($data['courseid'], $USER->id,
-                                              $data['quizid']
-                );
-            }
-
-            if ($data["webcam_proctoring_required"]) {
-                $external::set_wb_quiz_status($data['courseid'], $USER->id,
-                                              $data['quizid']
+            if ($data["screen_proctoring_required"] || $data["webcam_proctoring_required"]) {
+                $external::set_quiz_status($data['courseid'], $USER->id,
+                                           $data['quizid']
                 );
             }
         } catch (Exception $e) {
