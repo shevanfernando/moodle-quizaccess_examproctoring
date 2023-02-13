@@ -111,3 +111,4 @@ $string['frozen_message'] =
     'This quiz already has attempts. Therefore ExProctor plugin settings can no longer be updated.';
 $string["invalid_data"] =
     "{$a->field} is invalid. {$a->field} must be {$a->data_type}.";
+$string["empty_data"] = "{$a->field} is empty.";
