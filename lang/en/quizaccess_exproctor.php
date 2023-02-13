@@ -78,8 +78,7 @@ $string['screen_proctoring_required_help'] =
     'Do you want to use screen proctoring for this quiz?';
 $string['proctoring_header'] =
     '<strong>To continue with this quiz attempt, please grant your web browser permission to access your {$a}.</strong>';
-$string['webcam_report'] = 'View webcam shots';
-$string['screen_report'] = 'View screen shots';
+$string['view_report'] = 'View evidences';
 $string['no_permission_report'] =
     'You don\'t have permission to review validation reports.';
 $string['no_permission_to_delete_report'] =
@@ -94,10 +93,8 @@ $string['pictures_webcam_used_report'] =
     'These are the webcam evidence captured during the quiz.';
 $string['pictures_screen_used_report'] =
     'These are the screen shots captured during the quiz.';
-$string['pictures_webcam_no_report'] =
-    'There is no webcam evidence data for this quiz..';
-$string['pictures_screen_no_report'] =
-    'There is no screen evidence data for this quiz..';
+$string['no_evidence_report'] =
+    'There is <strong>no attempt</strong> in this quiz. Therefore, there is no evidence data for this.';
 $string['std_name'] = 'Student Name';
 $string['webcam_picture'] = 'Captured Webcam Pictures';
 $string['screen_picture'] = 'Captured Screen shots';
@@ -110,5 +107,5 @@ $string['screen_shot_delay_method_six'] = '30 Seconds';
 $string['frozen_message'] =
     'This quiz already has attempts. Therefore ExProctor plugin settings can no longer be updated.';
 $string["invalid_data"] =
-    "{$a->field} is invalid. {$a->field} must be {$a->data_type}.";
-$string["empty_data"] = "{$a->field} is empty.";
+    '{$a->field} is invalid. {$a->field} must be {$a->data_type}.';
+$string["empty_data"] = '{$a->field} is empty.';
