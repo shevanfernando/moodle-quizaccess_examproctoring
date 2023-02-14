@@ -32,6 +32,7 @@ require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/external.php'
 require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
 
 use core\output\notification;
+use quizaccess_exproctor\aws_s3;
 use quizaccess_exproctor\link_generator;
 
 class quizaccess_exproctor extends quiz_access_rule_base
