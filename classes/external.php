@@ -24,9 +24,9 @@
 
 global $CFG;
 
-defined('MOODLE_INTERNAL') || die;
+defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir . "/externallib.php");
+require_once($CFG->libdir."/externallib.php");
 
 use quizaccess_exproctor\aws_s3;
 
@@ -38,6 +38,7 @@ class quizaccess_exproctor_external extends external_api
      * @param $courseid
      * @param $userid
      * @param $quizid
+     *
      * @return bool true
      * @throws dml_exception
      * @throws invalid_parameter_exception
@@ -48,20 +49,22 @@ class quizaccess_exproctor_external extends external_api
 
         // Validate the params
         $params = self::validate_parameters(self::set_quiz_status_parameters(),
-                                            array('courseid' => $courseid,
-                                                  'userid'   => $userid,
-                                                  'quizid'   => $quizid
-                                            )
+            array(
+                'courseid' => $courseid,
+                'userid' => $userid,
+                'quizid' => $quizid
+            )
         );
 
-        $conditions = array('courseid'       => $params['courseid'],
-                            'quizid'         => $params['quizid'],
-                            'userid'         => $params['userid'],
-                            'isquizfinished' => false
+        $conditions = array(
+            'courseid' => $params['courseid'],
+            'quizid' => $params['quizid'],
+            'userid' => $params['userid'],
+            'isquizfinished' => false
         );
 
         return $DB->set_field("quizaccess_exproctor_evid", 'isquizfinished',
-                              true, $conditions
+            true, $conditions
         );
     }
 
@@ -73,19 +76,20 @@ class quizaccess_exproctor_external extends external_api
     public static function set_quiz_status_parameters(
     ): external_function_parameters
     {
-        return new external_function_parameters(array('courseid'  => new external_value(PARAM_INT,
-                                                                                        'course id',
-                                                                                        VALUE_REQUIRED
-        ),
-                                                      'userid'    => new external_value(PARAM_INT,
-                                                                                        'user id',
-                                                                                        VALUE_REQUIRED
-                                                      ),
-                                                      'quizid'    => new external_value(PARAM_INT,
-                                                                                        'quiz id',
-                                                                                        VALUE_REQUIRED
-                                                      ),
-                                                ));
+        return new external_function_parameters(array(
+            'courseid' => new external_value(PARAM_INT,
+                'course id',
+                VALUE_REQUIRED
+            ),
+            'userid' => new external_value(PARAM_INT,
+                'user id',
+                VALUE_REQUIRED
+            ),
+            'quizid' => new external_value(PARAM_INT,
+                'quiz id',
+                VALUE_REQUIRED
+            ),
+        ));
     }
 
     /**
@@ -96,32 +100,39 @@ class quizaccess_exproctor_external extends external_api
     public static function set_quiz_status_returns()
     {
         return new external_value(PARAM_BOOL,
-                                  'Current quiz attempt status updated'
+            'Current quiz attempt status updated'
         );
     }
 
     /**
      * This function store the webcam shot
+     *
      * @param $courseid
      * @param $attemptid
      * @param $quizid
      * @param $webcamshot
      * @param $bucketName
+     *
      * @return array
      * @throws dml_exception
      * @throws invalid_parameter_exception
      */
-    public static function send_webcam_shot($courseid, $attemptid, $quizid,
-                                            $webcamshot, $bucketName
+    public static function send_webcam_shot(
+        $courseid,
+        $attemptid,
+        $quizid,
+        $webcamshot,
+        $bucketName
     ): array {
         // Validate the params
         $params = self::validate_parameters(self::send_webcam_shot_parameters(),
-                                            array('courseid'   => $courseid,
-                                                  'attemptid'  => $attemptid,
-                                                  'quizid'     => $quizid,
-                                                  'webcamshot' => $webcamshot,
-                                                  'bucketName' => $bucketName,
-                                            )
+            array(
+                'courseid' => $courseid,
+                'attemptid' => $attemptid,
+                'quizid' => $quizid,
+                'webcamshot' => $webcamshot,
+                'bucketName' => $bucketName,
+            )
         );
 
         $params["filearea"] = "webcam_images";
@@ -137,27 +148,28 @@ class quizaccess_exproctor_external extends external_api
     public static function send_webcam_shot_parameters(
     ): external_function_parameters
     {
-        return new external_function_parameters(array('courseid'      => new external_value(PARAM_INT,
-                                                                                            'course id',
-                                                                                            VALUE_REQUIRED
-        ),
-                                                      'attemptid'     => new external_value(PARAM_INT,
-                                                                                            'attempt id',
-                                                                                            VALUE_REQUIRED
-                                                      ),
-                                                      'quizid'        => new external_value(PARAM_INT,
-                                                                                            'quiz id',
-                                                                                            VALUE_REQUIRED
-                                                      ),
-                                                      'webcamshot'    => new external_value(PARAM_RAW,
-                                                                                            'webcam shot',
-                                                                                            VALUE_REQUIRED
-                                                      ),
-                                                      'bucketName'    => new external_value(PARAM_TEXT,
-                                                                                            'S3 Bucket name',
-                                                                                            VALUE_REQUIRED
-                                                      ),
-                                                ));
+        return new external_function_parameters(array(
+            'courseid' => new external_value(PARAM_INT,
+                'course id',
+                VALUE_REQUIRED
+            ),
+            'attemptid' => new external_value(PARAM_INT,
+                'attempt id',
+                VALUE_REQUIRED
+            ),
+            'quizid' => new external_value(PARAM_INT,
+                'quiz id',
+                VALUE_REQUIRED
+            ),
+            'webcamshot' => new external_value(PARAM_RAW,
+                'webcam shot',
+                VALUE_REQUIRED
+            ),
+            'bucketName' => new external_value(PARAM_TEXT,
+                'S3 Bucket name',
+                VALUE_OPTIONAL
+            ),
+        ));
     }
 
     /**
@@ -175,17 +187,21 @@ class quizaccess_exproctor_external extends external_api
         $url = null;
 
         // get last record and check the quiz is finished or not
-        $conditions = array('courseid'       => $params['courseid'],
-                            'attemptid'      => $params['attemptid'],
-                            'quizid'         => $params['quizid'],
-                            'userid'         => $USER->id,
-                            'isquizfinished' => true, 'evidencetype' => $type
+        $conditions = array(
+            'courseid' => (int) $params['courseid'],
+            'attemptid' => (int) $params['attemptid'],
+            'quizid' => (int) $params['quizid'],
+            'userid' => (int) $USER->id,
+            'isquizfinished' => true,
+            'evidencetype' => $type
         );
 
         $warnings = array();
         $id = null;
 
-        $number_of_records = $DB->count_records($table_name, $conditions);
+        $number_of_records =
+            $DB->count_records_sql("SELECT COUNT(id) FROM {".$table_name."} WHERE courseid = :courseid AND attemptid = :attemptid AND quizid = :quizid AND userid = :userid AND isquizfinished = :isquizfinished AND evidencetype = :evidencetype",
+                $conditions);
 
         if ($number_of_records == 0) {
             $s3Client = new aws_s3();
@@ -216,8 +232,8 @@ class quizaccess_exproctor_external extends external_api
                 $record->filepath = file_correct_filepath($record->filepath);
 
                 $result = self::get_url_and_file_id($data, $type, $attemptid,
-                                                    $USER->id, $courseid,
-                                                    $context->id, $record, $fs
+                    $USER->id, $courseid,
+                    $context->id, $record, $fs
                 );
 
                 $fileid = $result["file_id"];
@@ -227,8 +243,8 @@ class quizaccess_exproctor_external extends external_api
                 list(, $data) = explode(',', $data);
                 $data = base64_decode($data);
                 $filename =
-                    $type . '-' . $attemptid . '-' . $USER->id . '-' . $courseid . '-' . time(
-                    ) . rand(1, 1000) . '.png';
+                    $type.'-'.$attemptid.'-'.$USER->id.'-'.$courseid.'-'.time().rand(1,
+                        1000).'.png';
 
                 $result =
                     $s3Client->saveImage($params['bucketName'], $data, $filename
@@ -239,10 +255,10 @@ class quizaccess_exproctor_external extends external_api
             }
 
             $record = new stdClass();
-            $record->courseid = (int)$params['courseid'];
-            $record->quizid = (int)$params['quizid'];
-            $record->userid = (int)$USER->id;
-            $record->attemptid = (int)$params['attemptid'];
+            $record->courseid = (int) $params['courseid'];
+            $record->quizid = (int) $params['quizid'];
+            $record->userid = (int) $USER->id;
+            $record->attemptid = (int) $params['attemptid'];
             $record->fileid = $fileid;
             $record->s3filename = $s3filename;
             $record->url = "{$url}";
@@ -272,12 +288,19 @@ class quizaccess_exproctor_external extends external_api
      * @param $contextid
      * @param $record
      * @param $fs
+     *
      * @return array
      * @throws dml_exception
      */
-    private static function get_url_and_file_id($data, $type, $attemptid,
-                                                $userid, $courseid, $contextid,
-                                                $record, $fs
+    private static function get_url_and_file_id(
+        $data,
+        $type,
+        $attemptid,
+        $userid,
+        $courseid,
+        $contextid,
+        $record,
+        $fs
     ): array {
         global $DB;
 
@@ -285,8 +308,8 @@ class quizaccess_exproctor_external extends external_api
         list(, $data) = explode(',', $data);
         $data = base64_decode($data);
         $filename =
-            $type . '-' . $attemptid . '-' . $userid . '-' . $courseid . '-' . time(
-            ) . rand(1, 1000) . '.png';
+            $type.'-'.$attemptid.'-'.$userid.'-'.$courseid.'-'.time().rand(1,
+                1000).'.png';
 
         $record->courseid = $courseid;
         $record->filename = $filename;
@@ -295,11 +318,12 @@ class quizaccess_exproctor_external extends external_api
 
         $fs->create_file_from_string($record, $data);
 
-        $conditions = array('userid'    => $userid, 'contextid' => $contextid,
-                            'mimetype'  => 'image/png',
-                            'component' => 'quizaccess_exproctor',
-                            'filearea'  => "{$record->filearea}",
-                            'filename'  => "{$filename}"
+        $conditions = array(
+            'userid' => $userid, 'contextid' => $contextid,
+            'mimetype' => 'image/png',
+            'component' => 'quizaccess_exproctor',
+            'filearea' => "{$record->filearea}",
+            'filename' => "{$filename}"
         );
 
         $filerecords = $DB->get_records("files", $conditions);
@@ -309,15 +333,16 @@ class quizaccess_exproctor_external extends external_api
             $file_id = $filerecord->id;
         }
 
-        return array("file_id" => $file_id,
-                     "url"     => ((moodle_url::make_pluginfile_url($contextid,
-                                                                    $record->component,
-                                                                    $record->filearea,
-                                                                    $record->itemid,
-                                                                    $record->filepath,
-                                                                    $record->filename,
-                                                                    false
-                     )))
+        return array(
+            "file_id" => $file_id,
+            "url" => ((moodle_url::make_pluginfile_url($contextid,
+                $record->component,
+                $record->filearea,
+                $record->itemid,
+                $record->filepath,
+                $record->filename,
+                false
+            )))
         );
     }
 
@@ -328,12 +353,12 @@ class quizaccess_exproctor_external extends external_api
      */
     public static function send_webcam_shot_returns(): external_single_structure
     {
-        return new external_single_structure(array('id'       => new external_value(PARAM_TEXT,
-                                                                                    'webcam shot id'
-        ),
-                                                   'warnings' => new external_warnings(
-                                                   )
-                                             ));
+        return new external_single_structure(array(
+            'id' => new external_value(PARAM_TEXT,
+                'webcam shot id'
+            ),
+            'warnings' => new external_warnings()
+        ));
     }
 
     /**
@@ -344,21 +369,27 @@ class quizaccess_exproctor_external extends external_api
      * @param $quizid
      * @param $screenshot
      * @param $bucketName
+     *
      * @return array
      * @throws dml_exception
      * @throws invalid_parameter_exception
      */
-    public static function send_screen_shot($courseid, $attemptid, $quizid,
-                                            $screenshot, $bucketName
+    public static function send_screen_shot(
+        $courseid,
+        $attemptid,
+        $quizid,
+        $screenshot,
+        $bucketName
     ): array {
         // Validate the params
         $params = self::validate_parameters(self::send_screen_shot_parameters(),
-                                            array('courseid'   => $courseid,
-                                                  'attemptid'  => $attemptid,
-                                                  'quizid'     => $quizid,
-                                                  'screenshot' => $screenshot,
-                                                  'bucketName' => $bucketName,
-                                            )
+            array(
+                'courseid' => $courseid,
+                'attemptid' => $attemptid,
+                'quizid' => $quizid,
+                'screenshot' => $screenshot,
+                'bucketName' => $bucketName,
+            )
         );
 
         $params["filearea"] = "screen_shots";
@@ -374,27 +405,28 @@ class quizaccess_exproctor_external extends external_api
     public static function send_screen_shot_parameters(
     ): external_function_parameters
     {
-        return new external_function_parameters(array('courseid'      => new external_value(PARAM_INT,
-                                                                                            'course id',
-                                                                                            VALUE_REQUIRED
-        ),
-                                                      'attemptid'     => new external_value(PARAM_INT,
-                                                                                            'attempt id',
-                                                                                            VALUE_REQUIRED
-                                                      ),
-                                                      'quizid'        => new external_value(PARAM_INT,
-                                                                                            'quiz id',
-                                                                                            VALUE_REQUIRED
-                                                      ),
-                                                      'screenshot'    => new external_value(PARAM_RAW,
-                                                                                            'screen shot',
-                                                                                            VALUE_REQUIRED
-                                                      ),
-                                                      'bucketName'    => new external_value(PARAM_TEXT,
-                                                                                            'S3 Bucket name',
-                                                                                            VALUE_REQUIRED
-                                                      ),
-                                                ));
+        return new external_function_parameters(array(
+            'courseid' => new external_value(PARAM_INT,
+                'course id',
+                VALUE_REQUIRED
+            ),
+            'attemptid' => new external_value(PARAM_INT,
+                'attempt id',
+                VALUE_REQUIRED
+            ),
+            'quizid' => new external_value(PARAM_INT,
+                'quiz id',
+                VALUE_REQUIRED
+            ),
+            'screenshot' => new external_value(PARAM_RAW,
+                'screen shot',
+                VALUE_REQUIRED
+            ),
+            'bucketName' => new external_value(PARAM_TEXT,
+                'S3 Bucket name',
+                VALUE_OPTIONAL
+            ),
+        ));
     }
 
     /**
@@ -404,11 +436,11 @@ class quizaccess_exproctor_external extends external_api
      */
     public static function send_screen_shot_returns(): external_single_structure
     {
-        return new external_single_structure(array('id'       => new external_value(PARAM_INT,
-                                                                                    'screen shot id'
-        ),
-                                                   'warnings' => new external_warnings(
-                                                   )
-                                             ));
+        return new external_single_structure(array(
+            'id' => new external_value(PARAM_INT,
+                'screen shot id'
+            ),
+            'warnings' => new external_warnings()
+        ));
     }
 }
