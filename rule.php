@@ -218,13 +218,13 @@ class quizaccess_exproctor extends quiz_access_rule_base
             )) {
                 $record = new stdClass();
                 $record->quizid = $quiz->id;
-                $record->webcam_proctoring_required =
+                $record->webcamproctoringrequired =
                     $is_webcam_proctoring_required;
-                $record->screen_proctoring_required =
+                $record->screenproctoringrequired =
                     $is_screen_proctoring_required;
-                $record->proctoring_method = $proctoring_method;
-                $record->screen_shot_delay = $screenshot_delay;
-                $record->screen_shot_width = $screen_shot_width;
+                $record->proctoringmethod = $proctoring_method;
+                $record->screenshotdelay = $screenshot_delay;
+                $record->screenshotwidth = $screen_shot_width;
                 $DB->insert_record('quizaccess_exproctor', $record);
             } else {
                 $record = $DB->get_record('quizaccess_exproctor',
