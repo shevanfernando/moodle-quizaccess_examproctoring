@@ -278,14 +278,14 @@ class exproctor_evidence extends persistent
                     array("field" => "File ID", "data_type" => "a string")
                 ),
             ], 's3filename' => [
-                'type' => PARAM_INT, 'null' => NULL_ALLOWED,
+                'type' => PARAM_TEXT, 'null' => NULL_ALLOWED,
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
                     array("field" => "S3 file name", "data_type" => "a string")
                 ),
             ], 'url' => [
-                'type' => PARAM_INT, 'null' => NULL_NOT_ALLOWED,
+                'type' => PARAM_TEXT, 'null' => NULL_NOT_ALLOWED,
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
@@ -303,7 +303,7 @@ class exproctor_evidence extends persistent
                     )
                 ),
             ], 'storagemethod' => [
-                'type' => PARAM_INT, 'null' => NULL_NOT_ALLOWED,
+                'type' => PARAM_TEXT, 'null' => NULL_NOT_ALLOWED,
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
@@ -313,7 +313,7 @@ class exproctor_evidence extends persistent
                     )
                 ),
             ], 'evidencetype' => [
-                'type' => PARAM_INT, 'null' => NULL_NOT_ALLOWED,
+                'type' => PARAM_TEXT, 'null' => NULL_NOT_ALLOWED,
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
