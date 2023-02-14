@@ -66,7 +66,7 @@ class exproctor_evidence extends persistent
         global $DB;
 
         $sql =
-            "SELECT DISTINCT e.userid, u.firstname, u.lastname, u.email, max(e.timecreated) AS timecreated FROM {"
+            "SELECT DISTINCT string_agg(distinct e.evidencetype, ' | ') AS evidencetype, e.userid, u.firstname, u.lastname, u.email, max(e.timecreated) AS timecreated FROM {"
             .static::TABLE."} AS e INNER JOIN {user} AS u ON u.id = e.userid WHERE e.quizid = :quizid AND e.courseid = :courseid GROUP BY e.userid, u.firstname, u.lastname, u.email";
 
         $persistents = [];
