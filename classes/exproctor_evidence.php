@@ -66,8 +66,8 @@ class exproctor_evidence extends persistent
         global $DB;
 
         $sql =
-            "SELECT DISTINCT e.userid, u.firstname, u.lastname, max(e.timecreated) FROM {"
-            .static::TABLE."} AS e INNER JOIN {user} AS u ON u.id = e.userid WHERE e.quizid = :quizid AND e.courseid = :courseid GROUP BY e.userid, u.firstname, u.lastname, e.timecreated";
+            "SELECT DISTINCT e.userid, u.firstname, u.lastname, u.email, max(e.timecreated) AS timecreated FROM {"
+            .static::TABLE."} AS e INNER JOIN {user} AS u ON u.id = e.userid WHERE e.quizid = :quizid AND e.courseid = :courseid GROUP BY e.userid, u.firstname, u.lastname, u.email, e.timecreated";
 
         $persistents = [];
 
@@ -247,19 +247,40 @@ class exproctor_evidence extends persistent
     protected static function define_properties(): array
     {
         return [
-            'courseid' => [
+            'firstname' => [
+                'type' => PARAM_TEXT, 'null' => NULL_NOT_ALLOWED,
+                'message' => new lang_string(
+                    'invalid_data',
+                    'quizaccess_exproctor',
+                    array("field" => "firstname", "data_type" => "an string")
+                ),
+            ], 'lastname' => [
+                'type' => PARAM_TEXT, 'null' => NULL_NOT_ALLOWED,
+                'message' => new lang_string(
+                    'invalid_data',
+                    'quizaccess_exproctor',
+                    array("field" => "lastname", "data_type" => "an string")
+                ),
+            ], 'email' => [
+                'type' => PARAM_TEXT, 'null' => NULL_NOT_ALLOWED,
+                'message' => new lang_string(
+                    'invalid_data',
+                    'quizaccess_exproctor',
+                    array("field" => "email", "data_type" => "an string")
+                ),
+            ], 'courseid' => [
                 'type' => PARAM_INT, 'null' => NULL_NOT_ALLOWED,
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
-                    array("field" => "Course ID", "data_type" => "an integer")
+                    array("field" => "courseid", "data_type" => "an integer")
                 ),
             ], 'quizid' => [
                 'type' => PARAM_INT, 'null' => NULL_NOT_ALLOWED,
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
-                    array("field" => "Quiz ID", "data_type" => "an integer")
+                    array("field" => "quizid", "data_type" => "an integer")
                 ),
             ], 'userid' => [
                 'type' => PARAM_INT, 'null' => NULL_NOT_ALLOWED
@@ -268,29 +289,38 @@ class exproctor_evidence extends persistent
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
-                    array("field" => "Attempt ID", "data_type" => "an integer")
+                    array("field" => "attemptid", "data_type" => "an integer")
                 ),
             ], 'fileid' => [
                 'type' => PARAM_INT, 'null' => NULL_ALLOWED,
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
-                    array("field" => "File ID", "data_type" => "a string")
+                    array("field" => "fileid", "data_type" => "an integer")
                 ),
             ], 's3filename' => [
                 'type' => PARAM_TEXT, 'null' => NULL_ALLOWED,
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
-                    array("field" => "S3 file name", "data_type" => "a string")
+                    array("field" => "s3filename", "data_type" => "a string")
                 ),
-            ], 'url' => [
-                'type' => PARAM_TEXT, 'null' => NULL_NOT_ALLOWED,
+            ], 'contextid' => [
+                'type' => PARAM_INT, 'null' => NULL_ALLOWED,
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
-                    array("field" => "URL", "data_type" => "a string")
+                    array("field" => "contextid", "data_type" => "an integer")
                 ),
+            ], 'filearea' => [
+                'type' => PARAM_TEXT, 'null' => NULL_ALLOWED,
+                'message' => new lang_string(
+                    'invalid_data',
+                    'quizaccess_exproctor',
+                    array("field" => "filearea", "data_type" => "a string")
+                ),
+            ], 'url' => [
+                'type' => PARAM_RAW, 'null' => NULL_NOT_ALLOWED,
             ], 'isquizfinished' => [
                 'type' => PARAM_INT, 'null' => NULL_NOT_ALLOWED,
                 "default" => 0,
@@ -298,7 +328,7 @@ class exproctor_evidence extends persistent
                     'invalid_data',
                     'quizaccess_exproctor',
                     array(
-                        "field" => "Is quiz finished",
+                        "field" => "isquizfinished",
                         "data_type" => "an integer"
                     )
                 ),
@@ -308,7 +338,7 @@ class exproctor_evidence extends persistent
                     'invalid_data',
                     'quizaccess_exproctor',
                     array(
-                        "field" => "Storage method",
+                        "field" => "storagemethod",
                         "data_type" => "a string"
                     )
                 ),
@@ -318,7 +348,7 @@ class exproctor_evidence extends persistent
                     'invalid_data',
                     'quizaccess_exproctor',
                     array(
-                        "field" => "Evidence type",
+                        "field" => "evidencetype",
                         "data_type" => "a string"
                     )
                 ),
@@ -334,8 +364,7 @@ class exproctor_evidence extends persistent
      * @return true|lang_string
      * @throws coding_exception
      */
-    protected
-    function validate_userid(
+    protected function validate_userid(
         int $value
     ) {
         $msg = array("field" => "userid", "data_type" => "an integer");
