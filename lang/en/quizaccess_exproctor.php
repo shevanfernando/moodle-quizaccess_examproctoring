@@ -87,6 +87,7 @@ $string['proctoring_reports'] = 'Identity validation report for: ';
 $string['proctoring_reports_desc'] =
     'In this report you will find all the images of the students which are taken during the exam. Now you can validate their exam.';
 $string['dateverified'] = 'Date and time';
+$string['evidencetype'] = 'Evidence type';
 $string['actions'] = 'Actions';
 $string['pictures_report'] = 'View proctoring report';
 $string['pictures_webcam_used_report'] =
