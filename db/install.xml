@@ -98,7 +98,7 @@
                      REFTABLE="user" REFFIELDS="id"/>
                 <KEY NAME="attemptid" TYPE="foreign" FIELDS="attemptid"
                      REFTABLE="quiz_attempts" REFFIELDS="id"/>
-                <KEY NAME="fileid" TYPE="foreign" FIELDS="fileid"
+                <KEY NAME="fileid" TYPE="foreign-unique" FIELDS="fileid"
                      REFTABLE="files" REFFIELDS="id"/>
             </KEYS>
         </TABLE>
