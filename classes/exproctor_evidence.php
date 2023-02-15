@@ -114,7 +114,7 @@ class exproctor_evidence extends persistent
         global $DB;
 
         $sql =
-            "SELECT e.url, e.fileid, e.s3filename, e.storagemethod, f.contextid, f.filearea FROM {"
+            "SELECT e.url, e.fileid, e.s3filename, e.storagemethod, f.contextid, f.filearea, f.itemid FROM {"
             .static::TABLE."} AS e INNER JOIN {files} AS f ON f.id = e.fileid WHERE e.id = :id";
 
         $persistents = [];
@@ -147,18 +147,21 @@ class exproctor_evidence extends persistent
     ): bool {
         global $DB;
 
-        if (empty($persistents)) {
-            return false;
-        }
+        //        if (empty($persistents)) {
+        //            return false;
+        //        }
 
         foreach ($persistents as $persistent) {
-            if ($persistent->get("storagemethod") == "Local") {
+            if ($persistent->get("storagemethod") === "Local") {
                 // Delete the actual file
-                $fs = get_file_storage();
-                $fs->delete_area_files($persistent->get("contextid"),
-                    "quizaccess_exproctor",
-                    ("{$persistent->get("filearea")}"),
-                    $persistent->get("fileid"));
+                //                $fs = get_file_storage();
+                //                $fs->delete_area_files_select($persistent->get("contextid"),
+                //                    "quizaccess_exproctor",
+                //                    ("{$persistent->get("filearea")}"),
+                //                    " = :itemid AND id = :id", array(
+                //                        "itemid" => $persistent->get("itemid"),
+                //                        "id" => $persistent->get("fileid")
+                //                    ));
             } else {
                 // S3 Bucket record delete
                 $s3 = new aws_s3();
@@ -167,9 +170,11 @@ class exproctor_evidence extends persistent
                 $s3->deleteImage($bucketName, $persistent->get("s3filename"));
             }
 
-            // Delete evidence in table
-            $DB->delete_records("{".static::TABLE."}", $conditions);
+
         }
+
+        // Delete evidence in table
+        $DB->delete_records(static::TABLE, $conditions);
 
         return true;
     }
@@ -177,9 +182,10 @@ class exproctor_evidence extends persistent
     /**
      * Delete exproctor evidence record by ID
      *
-     * @param  int  $quizid
-     * @param  int  $courseid
-     * @param  int  $userid
+     * @param  int     $quizid
+     * @param  int     $courseid
+     * @param  int     $userid
+     * @param  string  $evidencetype
      *
      * @return bool
      * @throws dml_exception
@@ -187,7 +193,8 @@ class exproctor_evidence extends persistent
     public static function delete_evidences_by_quizid_and_courseid_and_userid(
         int $quizid,
         int $courseid,
-        int $userid
+        int $userid,
+        string $evidencetype
     ): bool {
         global $DB;
 
@@ -197,7 +204,8 @@ class exproctor_evidence extends persistent
 
         return static::delete_evidence($persistents, array(
             "quizid" => $quizid,
-            "courseid" => $courseid, "userid" => $userid
+            "courseid" => $courseid, "userid" => $userid,
+            "evidencetype" => $evidencetype
         ));
     }
 
@@ -219,7 +227,7 @@ class exproctor_evidence extends persistent
         global $DB;
 
         $sql =
-            "SELECT e.userid, u.firstname, u.lastname, e.evidencetype, e.url, e.fileid, e.s3filename, e.storagemethod, f.contextid, f.filearea FROM {"
+            "SELECT e.id, e.userid, u.firstname, u.lastname, e.evidencetype, e.url, e.fileid, e.s3filename, e.storagemethod, f.contextid, f.filearea, f.itemid FROM {"
             .static::TABLE."} AS e INNER JOIN {user} AS u ON u.id = e.userid INNER JOIN {files} AS f ON f.id = e.fileid WHERE e.quizid = :quizid AND e.courseid = :courseid AND e.userid = :userid";
 
         $persistents = [];
@@ -247,26 +255,33 @@ class exproctor_evidence extends persistent
     protected static function define_properties(): array
     {
         return [
-            'firstname' => [
+            'id' => [
+                'type' => PARAM_INT, 'null' => NULL_NOT_ALLOWED,
+                'message' => new lang_string(
+                    'invalid_data',
+                    'quizaccess_exproctor',
+                    array("field" => "id", "data_type" => "an integer")
+                ),
+            ], 'firstname' => [
                 'type' => PARAM_TEXT, 'null' => NULL_NOT_ALLOWED,
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
-                    array("field" => "firstname", "data_type" => "an string")
+                    array("field" => "firstname", "data_type" => "a string")
                 ),
             ], 'lastname' => [
                 'type' => PARAM_TEXT, 'null' => NULL_NOT_ALLOWED,
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
-                    array("field" => "lastname", "data_type" => "an string")
+                    array("field" => "lastname", "data_type" => "a string")
                 ),
             ], 'email' => [
                 'type' => PARAM_TEXT, 'null' => NULL_NOT_ALLOWED,
                 'message' => new lang_string(
                     'invalid_data',
                     'quizaccess_exproctor',
-                    array("field" => "email", "data_type" => "an string")
+                    array("field" => "email", "data_type" => "a string")
                 ),
             ], 'courseid' => [
                 'type' => PARAM_INT, 'null' => NULL_NOT_ALLOWED,
@@ -297,6 +312,13 @@ class exproctor_evidence extends persistent
                     'invalid_data',
                     'quizaccess_exproctor',
                     array("field" => "fileid", "data_type" => "an integer")
+                ),
+            ], 'itemid' => [
+                'type' => PARAM_INT, 'null' => NULL_ALLOWED,
+                'message' => new lang_string(
+                    'invalid_data',
+                    'quizaccess_exproctor',
+                    array("field" => "itemid", "data_type" => "an integer")
                 ),
             ], 's3filename' => [
                 'type' => PARAM_TEXT, 'null' => NULL_ALLOWED,
