@@ -96,9 +96,8 @@ $string['pictures_screen_used_report'] =
     'These are the screen shots captured during the quiz.';
 $string['no_evidence_report'] =
     'There is <strong>no attempt</strong> in this quiz. Therefore, there is no evidence data for this.';
-$string['std_name'] = 'Student Name';
-$string['webcam_picture'] = 'Captured Webcam Pictures';
-$string['screen_picture'] = 'Captured Screen shots';
+$string['std_name'] = 'Student name';
+$string['imagecolumn'] = 'Captured images';
 $string['screen_shot_delay_method_one'] = '5 Seconds';
 $string['screen_shot_delay_method_two'] = '10 Seconds';
 $string['screen_shot_delay_method_three'] = '15 Seconds';
