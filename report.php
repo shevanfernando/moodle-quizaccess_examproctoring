@@ -44,12 +44,12 @@ abstract class LogAction
 
 try {
     // Get vars.
-    $courseid = required_param('courseid', PARAM_INT);
-    $cmid = required_param('cmid', PARAM_INT);
-    $quizid = required_param('quizid', PARAM_INT);
-    $studentid = optional_param('studentid', '', PARAM_INT);
-    $reportid = optional_param('reportid', '', PARAM_INT);
-    $logaction = optional_param('logaction', '', PARAM_INT);
+    $courseid = (int) required_param('courseid', PARAM_INT);
+    $cmid = (int) required_param('cmid', PARAM_INT);
+    $quizid = (int) required_param('quizid', PARAM_INT);
+    $studentid = (int) optional_param('studentid', '', PARAM_INT);
+    $reportid = (int) optional_param('reportid', '', PARAM_INT);
+    $logaction = (int) optional_param('logaction', '', PARAM_INT);
     $evidencetype = optional_param('evidencetype', '', PARAM_TEXT);
 
     $context = context_module::instance($cmid, MUST_EXIST);
@@ -263,7 +263,7 @@ try {
                 $data[] = $webcampicture;
 
                 $data[] =
-                    "<a onclick='return confirm(`Are you sure you want to delete all these evidences`)' class='text-danger'  href='?courseid=".$courseid."&quizid=".$quizid."&cmid=".$cmid."&evidencetype=webcam&logaction=".LogAction::deleteAll."'>Delete all webcam evidences</a>";
+                    "<a onclick='return confirm(`Are you sure you want to delete all these evidences`)' class='text-danger'  href='?courseid=".$courseid."&quizid=".$quizid."&studentid=".$studentid."&cmid=".$cmid."&evidencetype=webcam&logaction=".LogAction::deleteAll."'>Delete all webcam evidences</a>";
 
                 $table->add_data($data);
             }
@@ -277,7 +277,7 @@ try {
                 $data[] = $screenpicture;
 
                 $data[] =
-                    "<a onclick='return confirm(`Are you sure you want to delete all these evidences`)' class='text-danger' href='?courseid=".$courseid."&quizid=".$quizid."&cmid=".$cmid."&evidencetype=screen&logaction=".LogAction::deleteAll."'>Delete all screen evidences</a>";
+                    "<a onclick='return confirm(`Are you sure you want to delete all these evidences`)' class='text-danger' href='?courseid=".$courseid."&quizid=".$quizid."&studentid=".$studentid."&cmid=".$cmid."&evidencetype=screen&logaction=".LogAction::deleteAll."'>Delete all screen evidences</a>";
 
                 $table->add_data($data);
             }

@@ -147,21 +147,26 @@ class exproctor_evidence extends persistent
     ): bool {
         global $DB;
 
-        //        if (empty($persistents)) {
-        //            return false;
-        //        }
+        if (empty($persistents)) {
+            return false;
+        }
 
         foreach ($persistents as $persistent) {
+            if (array_key_exists("evidencetype",
+                    $conditions) && ($persistent->get("evidencetype") !== $conditions["evidencetype"])) {
+                continue;
+            }
+
             if ($persistent->get("storagemethod") === "Local") {
                 // Delete the actual file
-                //                $fs = get_file_storage();
-                //                $fs->delete_area_files_select($persistent->get("contextid"),
-                //                    "quizaccess_exproctor",
-                //                    ("{$persistent->get("filearea")}"),
-                //                    " = :itemid AND id = :id", array(
-                //                        "itemid" => $persistent->get("itemid"),
-                //                        "id" => $persistent->get("fileid")
-                //                    ));
+                $fs = get_file_storage();
+                $fs->delete_area_files_select($persistent->get("contextid"),
+                    "quizaccess_exproctor",
+                    ("{$persistent->get("filearea")}"),
+                    " = :itemid AND id = :id", array(
+                        "itemid" => $persistent->get("itemid"),
+                        "id" => $persistent->get("fileid")
+                    ));
             } else {
                 // S3 Bucket record delete
                 $s3 = new aws_s3();
@@ -170,11 +175,9 @@ class exproctor_evidence extends persistent
                 $s3->deleteImage($bucketName, $persistent->get("s3filename"));
             }
 
-
+            // Delete evidence in table
+            $DB->delete_records(static::TABLE, ["id" => $persistent->get("id")]);
         }
-
-        // Delete evidence in table
-        $DB->delete_records(static::TABLE, $conditions);
 
         return true;
     }
