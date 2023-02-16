@@ -34,46 +34,10 @@ $functions = array(
         'capabilities' => 'quizaccess/exproctor:send_evidence',
         'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
     ),
-    'quizaccess_exproctor_get_webcam_shot' => array(
-        'classname' => 'quizaccess_exproctor_external',
-        'methodname' => 'get_webcam_shot',
-        'description' => 'Get list of webcam snapshot in the given session',
-        'type' => 'read',
-        'ajax' => true,
-        'capabilities' => 'quizaccess/exproctor:get_evidence',
-        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
-    ),
     'quizaccess_exproctor_send_screen_shot' => array(
         'classname' => 'quizaccess_exproctor_external',
         'methodname' => 'send_screen_shot',
         'description' => 'Send a screen snapshot on the given session',
-        'type' => 'write',
-        'ajax' => true,
-        'capabilities' => 'quizaccess/exproctor:send_evidence',
-        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
-    ),
-    'quizaccess_exproctor_get_screen_shot' => array(
-        'classname' => 'quizaccess_exproctor_external',
-        'methodname' => 'get_screen_shot',
-        'description' => 'Get list of screen snapshot in the given session',
-        'type' => 'read',
-        'ajax' => true,
-        'capabilities' => 'quizaccess/exproctor:get_evidence',
-        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
-    ),
-    'quizaccess_exproctor_set_wb_quiz_status' => array(
-        'classname' => 'quizaccess_exproctor_external',
-        'methodname' => 'set_wb_quiz_status',
-        'description' => 'Set status of current quiz attempt (web)',
-        'type' => 'write',
-        'ajax' => true,
-        'capabilities' => 'quizaccess/exproctor:send_evidence',
-        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE)
-    ),
-    'quizaccess_exproctor_set_sc_quiz_status' => array(
-        'classname' => 'quizaccess_exproctor_external',
-        'methodname' => 'set_sc_quiz_status',
-        'description' => 'Set status of current quiz attempt (screen)',
         'type' => 'write',
         'ajax' => true,
         'capabilities' => 'quizaccess/exproctor:send_evidence',
