@@ -1,31 +1,31 @@
-import $ from 'jquery';
-import Ajax from 'core/ajax';
-import { remove } from './store_current_attempt';
+import $ from "jquery";
+import Ajax from "core/ajax";
+import { remove } from "./store_current_attempt";
 
 export const init = (props) => {
   let isCameraAllowed = false;
 
-  $('#id_submitbutton').prop('disabled', true);
-  $('#id_web_proctoring').on('change', function () {
+  $("#id_submitbutton").prop("disabled", true);
+  $("#id_webproctoring").on("change", function () {
     if (this.checked && isCameraAllowed) {
-      $('#id_submitbutton').prop('disabled', false);
+      $("#id_submitbutton").prop("disabled", false);
     } else {
-      $('#id_submitbutton').prop('disabled', true);
+      $("#id_submitbutton").prop("disabled", true);
     }
   });
 
   // Skip for summary page
   if (
-    document.getElementById('page-mod-quiz-summary') !== null &&
-    document.getElementById('page-mod-quiz-summary').innerHTML.length
+    document.getElementById("page-mod-quiz-summary") !== null &&
+    document.getElementById("page-mod-quiz-summary").innerHTML.length
   ) {
     return false;
   }
 
   // Skip for review page
   if (
-    document.getElementById('page-mod-quiz-review') !== null &&
-    document.getElementById('page-mod-quiz-review').innerHTML.length
+    document.getElementById("page-mod-quiz-review") !== null &&
+    document.getElementById("page-mod-quiz-review").innerHTML.length
   ) {
     props.is_quiz_started = false;
     remove();
@@ -39,7 +39,7 @@ export const init = (props) => {
 
   if (props.is_quiz_started) {
     // eslint-disable-next-line max-len
-    $('#mod_quiz_navblock').append(
+    $("#mod_quiz_navblock").append(
       '<div class="card-body p-3"><h3 class="no text-left">Webcam</h3> <br/>' +
         '<video id="exproctor_video_wb">Video stream not available.</video>' +
         '<canvas id="exproctor_canvas_wb" style="display:none;"></canvas>' +
@@ -48,56 +48,64 @@ export const init = (props) => {
     );
   }
 
-  let video = document.getElementById('exproctor_video_wb');
-  let canvas = document.getElementById('exproctor_canvas_wb');
-  let photo = document.getElementById('exproctor_photo_wb');
+  let video = document.getElementById("exproctor_video_wb");
+  let canvas = document.getElementById("exproctor_canvas_wb");
+  let photo = document.getElementById("exproctor_photo_wb");
 
-  $('#id_submitbutton').click(function () {
+  const get_webcam_share_permission = () => {
+    return navigator.mediaDevices
+      .getUserMedia({ video: true, audio: false })
+      .then((stream) => {
+        video.srcObject = stream;
+        video.play();
+        isCameraAllowed = true;
+      })
+      .catch(() => {
+        alert("This quiz requires Webcam permission to start!");
+        get_webcam_share_permission();
+      });
+  };
+
+  $("#id_submitbutton").click(function () {
     props.is_quiz_started = true;
+    takepicture();
     setInterval(takepicture, props.screenshotdelay);
   });
 
-  navigator.mediaDevices
-    .getUserMedia({ video: true, audio: false })
-    .then((stream) => {
-      video.srcObject = stream;
-      video.play();
-      isCameraAllowed = true;
-    })
-    .catch((err) => {
-      window.console.error(`An error occurred: ${err}`);
-    });
+  $("[id^=single_button].btn.btn-primary").click(function () {
+    get_webcam_share_permission();
+  });
 
   const clearphoto = () => {
-    const context = canvas.getContext('2d');
-    context.fillStyle = '#AAA';
+    const context = canvas.getContext("2d");
+    context.fillStyle = "#AAA";
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    const data = canvas.toDataURL('image/png');
-    photo.setAttribute('src', data);
+    const data = canvas.toDataURL("image/png");
+    photo.setAttribute("src", data);
   };
 
   const takepicture = () => {
-    props.id = localStorage.getItem('attemptId');
+    props.id = localStorage.getItem("attemptId");
 
     if (props.is_quiz_started && props.id) {
-      const context = canvas.getContext('2d');
+      const context = canvas.getContext("2d");
       if (width && height) {
         canvas.width = width;
         canvas.height = height;
         context.drawImage(video, 0, 0, width, height);
 
-        const data = canvas.toDataURL('image/png');
-        photo.setAttribute('src', data);
+        const data = canvas.toDataURL("image/png");
+        photo.setAttribute("src", data);
         props.webcampicture = data;
 
-        const api_function = 'quizaccess_exproctor_send_webcam_shot';
+        const api_function = "quizaccess_exproctor_send_webcam_shot";
         const params = {
           courseid: props.courseid,
           attemptid: props.id,
           quizid: props.quizid,
           webcamshot: data,
-          bucketName: localStorage.getItem('bucketName'),
+          bucketName: localStorage.getItem("bucketName"),
         };
 
         const request = {
@@ -113,14 +121,14 @@ export const init = (props) => {
             if (data.warnings.length !== 0) {
               if (video) {
                 Notification.addNotification({
-                  message: 'Something went wrong during taking the image.',
-                  type: 'error',
+                  message: "Something went wrong during taking the image.",
+                  type: "error",
                 });
               }
             }
           })
           .fail((err) => {
-            window.console.log('Webcam proctoring');
+            window.console.log("Webcam proctoring");
             window.console.log(err);
           });
       } else {
@@ -131,7 +139,7 @@ export const init = (props) => {
 
   if (video) {
     video.addEventListener(
-      'canplay',
+      "canplay",
       () => {
         if (!streaming) {
           if (props.is_quiz_started) {
@@ -143,10 +151,10 @@ export const init = (props) => {
             height = width / (4 / 3);
           }
 
-          video.setAttribute('width', width);
-          video.setAttribute('height', height);
-          canvas.setAttribute('width', width);
-          canvas.setAttribute('height', height);
+          video.setAttribute("width", width);
+          video.setAttribute("height", height);
+          canvas.setAttribute("width", width);
+          canvas.setAttribute("height", height);
           streaming = true;
         }
       },
