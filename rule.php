@@ -465,7 +465,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
         );
 
         $PAGE->requires->js_call_amd(
-            'quizaccess_exproctor/screenproctoring',
+            'quizaccess_exproctor/screen_proctoring',
             'init',
             array($data)
         );
