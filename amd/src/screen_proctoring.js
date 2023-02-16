@@ -1,5 +1,5 @@
-import $ from "jquery";
-import Ajax from "core/ajax";
+import $ from 'jquery';
+import Ajax from 'core/ajax';
 
 export const init = async (props) => {
   let width = props.image_width; // We will scale the photo width to this
@@ -9,16 +9,16 @@ export const init = async (props) => {
 
   // Skip for summary page
   if (
-    document.getElementById("page-mod-quiz-summary") !== null &&
-    document.getElementById("page-mod-quiz-summary").innerHTML.length
+    document.getElementById('page-mod-quiz-summary') !== null &&
+    document.getElementById('page-mod-quiz-summary').innerHTML.length
   ) {
     return false;
   }
 
   // Skip for review page
   if (
-    document.getElementById("page-mod-quiz-review") !== null &&
-    document.getElementById("page-mod-quiz-review").innerHTML.length
+    document.getElementById('page-mod-quiz-review') !== null &&
+    document.getElementById('page-mod-quiz-review').innerHTML.length
   ) {
     props.is_quiz_started = false;
     return false;
@@ -26,7 +26,7 @@ export const init = async (props) => {
 
   if (props.is_quiz_started) {
     // eslint-disable-next-line max-len
-    $("#mod_quiz_navblock").append(
+    $('#mod_quiz_navblock').append(
       '<div class="card-body p-3" style="display: none"><h3 class="no text-left">Screen</h3> <br/>' +
         '<video id="exproctor_video_sc">Screen stream not available.</video>' +
         '<canvas id="exproctor_canvas_sc" style="display:none;"></canvas>' +
@@ -35,15 +35,15 @@ export const init = async (props) => {
     );
   }
 
-  let video = document.getElementById("exproctor_video_sc");
-  let canvas = document.getElementById("exproctor_canvas_sc");
-  let photo = document.getElementById("exproctor_photo_sc");
+  let video = document.getElementById('exproctor_video_sc');
+  let canvas = document.getElementById('exproctor_canvas_sc');
+  let photo = document.getElementById('exproctor_photo_sc');
 
   const get_screen_share_permission = () => {
     return navigator.mediaDevices
       .getDisplayMedia({
         video: {
-          cursor: "always",
+          cursor: 'always',
         },
         audio: false,
       })
@@ -52,43 +52,43 @@ export const init = async (props) => {
         video.play();
       })
       .catch(() => {
-        alert("This quiz requires Screen Sharing permission to start!");
+        alert('This quiz requires Screen Sharing permission to start!');
         get_screen_share_permission();
       });
   };
 
-  $("#id_submitbutton").click(function () {
+  $('#id_submitbutton').click(function () {
     props.is_quiz_started = true;
     takescreenshot();
-    setInterval(takescreenshot, props.screen_shot_delay);
+    setInterval(takescreenshot, props.screenshotdelay);
   });
 
-  $("[id^=single_button].btn.btn-primary").click(function () {
+  $('[id^=single_button].btn.btn-primary').click(function () {
     get_screen_share_permission();
   });
 
   const clearphoto = () => {
-    const context = canvas.getContext("2d");
-    context.fillStyle = "#AAA";
+    const context = canvas.getContext('2d');
+    context.fillStyle = '#AAA';
     context.fillRect(0, 0, canvas.width, canvas.height);
 
-    const data = canvas.toDataURL("image/png");
-    photo.setAttribute("src", data);
+    const data = canvas.toDataURL('image/png');
+    photo.setAttribute('src', data);
   };
 
   const takescreenshot = () => {
-    props.id = localStorage.getItem("attemptId");
+    props.id = localStorage.getItem('attemptId');
 
     if (props.is_quiz_started && props.id) {
-      const context = canvas.getContext("2d");
+      const context = canvas.getContext('2d');
       window.console.log(props);
       if (width && height) {
         canvas.width = width;
         canvas.height = height;
         context.drawImage(video, 0, 0, width, height);
 
-        const data = canvas.toDataURL("image/png");
-        photo.setAttribute("src", data);
+        const data = canvas.toDataURL('image/png');
+        photo.setAttribute('src', data);
         props.webcampicture = data;
 
         const params = {
@@ -96,11 +96,11 @@ export const init = async (props) => {
           attemptid: props.id,
           quizid: props.quizid,
           screenshot: data,
-          bucketName: localStorage.getItem("bucketName"),
+          bucketName: localStorage.getItem('bucketName'),
         };
 
         const request = {
-          methodname: "quizaccess_exproctor_send_screen_shot",
+          methodname: 'quizaccess_exproctor_send_screen_shot',
           args: params,
         };
 
@@ -113,8 +113,8 @@ export const init = async (props) => {
               if (video) {
                 Notification.addNotification({
                   message:
-                    "Something went wrong during taking the screen-shot.",
-                  type: "error",
+                    'Something went wrong during taking the screen-shot.',
+                  type: 'error',
                 });
               }
             }
@@ -130,7 +130,7 @@ export const init = async (props) => {
 
   if (video) {
     video.addEventListener(
-      "canplay",
+      'canplay',
       () => {
         if (!streaming) {
           if (props.is_quiz_started) {
@@ -142,10 +142,10 @@ export const init = async (props) => {
             height = width / (4 / 3);
           }
 
-          video.setAttribute("width", width);
-          video.setAttribute("height", height);
-          canvas.setAttribute("width", width);
-          canvas.setAttribute("height", height);
+          video.setAttribute('width', width);
+          video.setAttribute('height', height);
+          canvas.setAttribute('width', width);
+          canvas.setAttribute('height', height);
           streaming = true;
         }
       },

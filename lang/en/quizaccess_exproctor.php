@@ -44,10 +44,10 @@ $string['aws_access_key'] = 'Access key';
 $string['aws_access_key_description'] = 'Access key id for AWS.';
 $string['aws_secret_key'] = 'Secret key';
 $string['aws_secret_key_description'] = 'Secret key for AWS.';
-$string['screen_shot_delay'] = 'The delay between screenshots in seconds';
-$string['screen_shot_width'] =
+$string['screenshotdelay'] = 'The delay between screenshots in seconds';
+$string['screenshotwidth'] =
     'The width of the screenshot image in px (pixels)';
-$string['proctoring_method'] = 'Exam proctoring method';
+$string['proctoringmethod'] = 'Exam proctoring method';
 $string['proctoring_method_help'] =
     'How do you want to proctor this quiz? Please click the drop down to find Proctoring options.';
 $string['proctoring_method_one'] = 'Take screenshot randomly';
@@ -55,28 +55,28 @@ $string['proctoring_method_two'] = 'Take screenshot using AI';
 $string['proctoring_method_three'] = 'Live proctoring';
 $string['not_required'] = 'not required';
 $string['required'] = 'required';
-$string['open_webcam'] = 'Allow your webcam to continue';
-$string['open_screen'] = 'Chose what to share';
-$string['webcam_proctoring_statement'] =
+$string['openwebcam'] = 'Allow your webcam to continue';
+$string['openscreen'] = 'Chose what to share';
+$string['webcamproctoringstatement'] =
     'This exam requires webcam validation process. <br />(Please allow your web browser to access your camera).';
-$string['screen_proctoring_statement'] =
+$string['screenproctoringstatement'] =
     'This exam requires screen validation process. <br />(Please select screen to share).';
-$string['cam_html'] =
+$string['camhtml'] =
     '<div class="exproctor_camera"> <video id="exproctor_video_wb" autoplay muted>Video stream not available.</video></div> <canvas id="exproctor_canvas_wb" style="display:none;"> </canvas> <img style="display:none;" id="exproctor_photo_wb" alt="The webcam capture will appear in this box."/>';
-$string['screen_html'] =
+$string['screenhtml'] =
     '<div class="exproctor_screen"> <video id="exproctor_video_sc" autoplay muted>Screen stream not available.</video></div> <canvas id="exproctor_canvas_sc" style="display:none;"> </canvas> <img style="display:none;" id="exproctor_photo_sc" alt="The screen capture will appear in this box."/>';
-$string['proctoring_label'] = 'I agree with the validation process.';
+$string['proctoringlabel'] = 'I agree with the validation process.';
 $string['you_must_agree_for_webcam'] =
     'You must agree to webcam validate before continue your attempt.';
 $string['you_must_agree_for_screen'] =
     'You must agree to screen validate before continue your attempt.';
-$string['webcam_proctoring_required'] = 'Webcam proctoring';
+$string['webcamproctoringrequired'] = 'Webcam proctoring';
 $string['webcam_proctoring_required_help'] =
     'Do you want to use webcam proctoring for this quiz?';
-$string['screen_proctoring_required'] = 'Screen proctoring';
+$string['screenproctoringrequired'] = 'Screen proctoring';
 $string['screen_proctoring_required_help'] =
     'Do you want to use screen proctoring for this quiz?';
-$string['proctoring_header'] =
+$string['proctoringheader'] =
     '<strong>To continue with this quiz attempt, please grant your web browser permission to access your {$a}.</strong>';
 $string['view_report'] = 'View evidences';
 $string['no_permission_report'] =
@@ -89,7 +89,7 @@ $string['proctoring_reports_desc'] =
 $string['dateverified'] = 'Date and time';
 $string['evidencetype'] = 'Evidence type';
 $string['actions'] = 'Actions';
-$string['pictures_report'] = 'View proctoring report';
+$string['picturesreport'] = 'View proctoring report';
 $string['pictures_webcam_used_report'] =
     'These are the webcam evidence captured during the quiz.';
 $string['pictures_screen_used_report'] =
