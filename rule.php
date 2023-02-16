@@ -26,10 +26,10 @@ global $CFG;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/accessrule/accessrulebase.php');
+require_once($CFG->dirroot.'/mod/quiz/accessrule/accessrulebase.php');
 
-require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/external.php');
-require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
+require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/external.php');
+require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
 
 use core\output\notification;
 use quizaccess_exproctor\aws_s3;
@@ -331,7 +331,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
     public static function get_settings_sql($quizid): array
     {
         return array(
-            'e.webcamproctoringrequired,' . 'e.screenproctoringrequired,' . 'e.proctoringmethod,' . 'e.screenshotdelay,' . 'e.screenshotwidth',
+            'e.webcamproctoringrequired,'.'e.screenproctoringrequired,'.'e.proctoringmethod,'.'e.screenshotdelay,'.'e.screenshotwidth',
             'LEFT JOIN {quizaccess_exproctor} e ON e.quizid = quiz.id',
             array()
         );
@@ -454,15 +454,15 @@ class quizaccess_exproctor extends quiz_access_rule_base
             '',
             get_string('screenhtml', 'quizaccess_exproctor')
         );
-        $mform->addElement(
-            'checkbox',
-            'screenproctoring',
-            '',
-            get_string(
-                'proctoringlabel',
-                'quizaccess_exproctor'
-            )
-        );
+        //        $mform->addElement(
+        //            'checkbox',
+        //            'screenproctoring',
+        //            '',
+        //            get_string(
+        //                'proctoringlabel',
+        //                'quizaccess_exproctor'
+        //            )
+        //        );
 
         $PAGE->requires->js_call_amd(
             'quizaccess_exproctor/screen_proctoring',
@@ -569,10 +569,10 @@ class quizaccess_exproctor extends quiz_access_rule_base
                 get_string('you_must_agree_for_webcam', 'quizaccess_exproctor');
         }
 
-        if (empty($data['screenproctoring']) && $values['screenproctoringrequired']) {
-            $errors['screenproctoring'] =
-                get_string('you_must_agree_for_screen', 'quizaccess_exproctor');
-        }
+        //        if (empty($data['screenproctoring']) && $values['screenproctoringrequired']) {
+        //            $errors['screenproctoring'] =
+        //                get_string('you_must_agree_for_screen', 'quizaccess_exproctor');
+        //        }
 
         return $errors;
     }
@@ -669,7 +669,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
         $bucketName = null;
 
         $page->set_title(
-            $this->quizobj->get_course()->shortname . ': ' . $page->title
+            $this->quizobj->get_course()->shortname.': '.$page->title
         );
         $page->set_popup_notification_allowed(
             false
@@ -734,7 +734,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
                 );
             }
         } catch (Exception $e) {
-            echo "Error: " . $e->getMessage();
+            echo "Error: ".$e->getMessage();
         }
     }
 }
