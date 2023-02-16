@@ -37,6 +37,18 @@ use quizaccess_exproctor\link_generator;
 
 class quizaccess_exproctor extends quiz_access_rule_base
 {
+
+    /**
+     * Constructor
+     *
+     * @param $quizobj
+     * @param $timenow
+     */
+    public function __construct($quizobj, $timenow)
+    {
+        parent::__construct($quizobj, $timenow);
+    }
+
     /**
      * Information, such as might be shown on the quiz view page, relating to this restriction.
      * There is no obligation to return anything. If it is not appropriate to tell students
@@ -82,17 +94,25 @@ class quizaccess_exproctor extends quiz_access_rule_base
         // TODO: Remove this before push the code into git hub
         get_string_manager()->reset_caches();
 
-        $mform->addElement('select', 'proctoring_method',
-            get_string('proctoring_method', 'quizaccess_exproctor'),
-            array(
-                0 => get_string('not_required', 'quizaccess_exproctor'),
-                1 => get_string('proctoring_method_one',
-                    'quizaccess_exproctor'
-                ), 2 => get_string('proctoring_method_two',
+        $proctor_methods = array(
+            0 => get_string('not_required', 'quizaccess_exproctor'),
+            1 => get_string('proctoring_method_one',
+                'quizaccess_exproctor'
+            ), 2 => get_string('proctoring_method_two',
                 'quizaccess_exproctor'
             ),
-                //                3 => get_string('proctoring_method_three', 'quizaccess_exproctor'),
-            )
+            //                3 => get_string('proctoring_method_three', 'quizaccess_exproctor'),
+        );
+
+        $s3 = new aws_s3();
+
+        if ($s3->getData()['storagemethod'] !== 'AWS(S3)') {
+            unset($proctor_methods[2]); // Remove Ai proctor method
+        }
+
+        $mform->addElement('select', 'proctoring_method',
+            get_string('proctoring_method', 'quizaccess_exproctor'),
+            $proctor_methods
         );
         $mform->addHelpButton('proctoring_method', 'proctoring_method',
             'quizaccess_exproctor'
