@@ -48,7 +48,7 @@ $string['screenshotdelay'] = 'The delay between screenshots in seconds';
 $string['screenshotwidth'] =
     'The width of the screenshot image in px (pixels)';
 $string['proctoringmethod'] = 'Exam proctoring method';
-$string['proctoring_method_help'] =
+$string['proctoringmethod_help'] =
     'How do you want to proctor this quiz? Please click the drop down to find Proctoring options.';
 $string['proctoring_method_one'] = 'Take screenshot randomly';
 $string['proctoring_method_two'] = 'Take screenshot using AI';
@@ -71,10 +71,10 @@ $string['you_must_agree_for_webcam'] =
 $string['you_must_agree_for_screen'] =
     'You must agree to screen validate before continue your attempt.';
 $string['webcamproctoringrequired'] = 'Webcam proctoring';
-$string['webcam_proctoring_required_help'] =
+$string['webcamproctoringrequired_help'] =
     'Do you want to use webcam proctoring for this quiz?';
 $string['screenproctoringrequired'] = 'Screen proctoring';
-$string['screen_proctoring_required_help'] =
+$string['screenproctoringrequired_help'] =
     'Do you want to use screen proctoring for this quiz?';
 $string['proctoringheader'] =
     '<strong>To continue with this quiz attempt, please grant your web browser permission to access your {$a}.</strong>';
