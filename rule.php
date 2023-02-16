@@ -192,7 +192,6 @@ class quizaccess_exproctor extends quiz_access_rule_base
         $mform->setDefault('screenshotwidth', 320);
 
         // Display notification about locked settings.
-        // TODO: remove ! symbol
         if (self::is_exproctor_settings_locked($quizform->get_instance())) {
             $notify = new notification(
                 get_string(
