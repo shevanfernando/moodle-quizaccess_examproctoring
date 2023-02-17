@@ -178,7 +178,6 @@ class exproctor_evidence extends persistent
                 if ($isdeleteall) {
                     $s3->deleteBucket($bucketName,
                         $persistent->get("evidencetype"));
-                    break;
                 } else {
                     $s3->deleteImage($bucketName,
                         $persistent->get("s3filename").".png");
