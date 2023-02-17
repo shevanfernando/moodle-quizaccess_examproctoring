@@ -70,7 +70,7 @@ export const init = async (props) => {
     setInterval(takescreenshot, props.screenshotdelay);
   });
 
-  $("[id^=single_button].btn.btn-primary").click(function () {
+  $(`#${$("[id^=single_button].btn.btn-primary")[0].id}`).click(function () {
     get_screen_share_permission();
   });
 

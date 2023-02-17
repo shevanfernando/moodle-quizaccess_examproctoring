@@ -74,7 +74,7 @@ export const init = (props) => {
     setInterval(takepicture, props.screenshotdelay);
   });
 
-  $("[id^=single_button].btn.btn-primary").click(function () {
+  $(`#${$("[id^=single_button].btn.btn-primary")[0].id}`).click(function () {
     get_webcam_share_permission();
   });
 
