@@ -63,6 +63,8 @@ export const init = async (props) => {
   };
 
   $("#id_submitbutton").click(function () {
+    localStorage.removeItem("attemptId");
+    localStorage.removeItem("bucketName");
     props.is_quiz_started = true;
     takescreenshot();
     setInterval(takescreenshot, props.screenshotdelay);
