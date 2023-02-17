@@ -48,6 +48,11 @@ export const init = async (props) => {
         audio: false,
       })
       .then((stream) => {
+        const displaySurface = stream.getVideoTracks()[0].getSettings().displaySurface;
+        if(displaySurface !== "monitor"){
+          alert("This quiz requires Entire Screen sharing permission to start!");
+          get_screen_share_permission();
+        }
         video.srcObject = stream;
         video.play();
       })
