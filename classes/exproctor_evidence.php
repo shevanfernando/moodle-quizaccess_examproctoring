@@ -36,6 +36,8 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
 
+ini_set('max_execution_time', 0);
+
 /**
  * ExProctor evidence persistent class.
  *
