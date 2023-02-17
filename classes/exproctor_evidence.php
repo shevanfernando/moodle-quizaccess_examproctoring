@@ -114,7 +114,7 @@ class exproctor_evidence extends persistent
         global $DB;
 
         $sql =
-            "SELECT e.url, e.fileid, e.s3filename, e.storagemethod, f.contextid, f.filearea, f.itemid FROM {"
+            "SELECT e.id, e.url, e.fileid, e.s3filename, e.storagemethod, f.contextid, f.filearea, f.itemid FROM {"
             .static::TABLE."} AS e LEFT JOIN {files} AS f ON f.id = e.fileid WHERE e.id = :id";
 
         $persistents = [];
