@@ -29,6 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->libdir."/externallib.php");
 
 use quizaccess_exproctor\aws_s3;
+use quizaccess_exproctor\aws_rekognition;
 
 class quizaccess_exproctor_external extends external_api
 {
@@ -112,6 +113,7 @@ class quizaccess_exproctor_external extends external_api
      * @param $quizid
      * @param $webcamshot
      * @param $bucketName
+     * @param $aiproctoring
      *
      * @return array
      * @throws dml_exception
@@ -122,7 +124,8 @@ class quizaccess_exproctor_external extends external_api
         $attemptid,
         $quizid,
         $webcamshot,
-        $bucketName
+        $bucketName,
+        $aiproctoring
     ): array {
         // Validate the params
         $params = self::validate_parameters(self::send_webcam_shot_parameters(),
@@ -132,6 +135,7 @@ class quizaccess_exproctor_external extends external_api
                 'quizid' => $quizid,
                 'webcamshot' => $webcamshot,
                 'bucketName' => $bucketName,
+                'aiproctoring' => $aiproctoring,
             )
         );
 
@@ -167,6 +171,10 @@ class quizaccess_exproctor_external extends external_api
             ),
             'bucketName' => new external_value(PARAM_TEXT,
                 'S3 Bucket name',
+                VALUE_OPTIONAL
+            ),
+            'aiproctoring' => new external_value(PARAM_BOOL,
+                'Ai proctoring is need',
                 VALUE_OPTIONAL
             ),
         ));
@@ -246,9 +254,21 @@ class quizaccess_exproctor_external extends external_api
                     $type.'-'.$attemptid.'-'.$USER->id.'-'.$courseid.'-'.time().rand(1,
                         1000).'.png';
 
-                $result =
-                    $s3Client->saveImage($params['bucketName'], $data, $filename
-                    );
+                if ($type === "webcam" && $params['aiproctoring']) {
+                    // AI proctoring
+                    $rekognition = new aws_rekognition();
+                    $result =
+                        $rekognition->storeEvidenceWhichFalseAiProctor($params['bucketName'],
+                            $data, $filename);
+                    if (empty($result)) {
+                        return ["id" => 0, "warnings" => $warnings];
+                    }
+                } else {
+                    $result =
+                        $s3Client->saveImage($params['bucketName'], $data,
+                            $filename
+                        );
+                }
 
                 $url = $result['ObjectURL'];
                 $s3filename = explode(".", $filename)[0];
@@ -379,7 +399,8 @@ class quizaccess_exproctor_external extends external_api
         $attemptid,
         $quizid,
         $screenshot,
-        $bucketName
+        $bucketName,
+        $aiproctoring
     ): array {
         // Validate the params
         $params = self::validate_parameters(self::send_screen_shot_parameters(),
@@ -389,6 +410,7 @@ class quizaccess_exproctor_external extends external_api
                 'quizid' => $quizid,
                 'screenshot' => $screenshot,
                 'bucketName' => $bucketName,
+                'aiproctoring' => $aiproctoring,
             )
         );
 
@@ -425,6 +447,11 @@ class quizaccess_exproctor_external extends external_api
             'bucketName' => new external_value(PARAM_TEXT,
                 'S3 Bucket name',
                 VALUE_OPTIONAL
+            ),
+            'aiproctoring' => new external_value(PARAM_BOOL,
+                'Ai proctoring is need',
+                VALUE_OPTIONAL,
+                false
             ),
         ));
     }
