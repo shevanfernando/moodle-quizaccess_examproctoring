@@ -71,14 +71,14 @@ export const init = (props) => {
     localStorage.removeItem("bucketName");
     props.is_quiz_started = true;
     takepicture();
-    setInterval(takepicture, props.screenshotdelay);
+    setInterval(takepicture, props.proctoringmethod == 2 ? 1000 : props.screenshotdelay);
   });
 
   $(`#${$("[id^=single_button].btn.btn-primary")[0].id}`).click(function () {
     get_webcam_share_permission();
     props.is_quiz_started = true;
     takepicture();
-    setInterval(takepicture, props.screenshotdelay);
+    setInterval(takepicture, props.proctoringmethod === 2 ? 1000 : props.screenshotdelay);
   });
 
   const clearphoto = () => {
@@ -111,6 +111,7 @@ export const init = (props) => {
           quizid: props.quizid,
           webcamshot: data,
           bucketName: localStorage.getItem("bucketName"),
+          aiproctoring: props.proctoringmethod == 2,
         };
 
         const request = {

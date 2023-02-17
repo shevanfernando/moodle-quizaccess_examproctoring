@@ -27,6 +27,8 @@ global $CFG;
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir."/externallib.php");
+require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
+require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/aws_rekognition.php');
 
 use quizaccess_exproctor\aws_s3;
 use quizaccess_exproctor\aws_rekognition;
@@ -399,8 +401,7 @@ class quizaccess_exproctor_external extends external_api
         $attemptid,
         $quizid,
         $screenshot,
-        $bucketName,
-        $aiproctoring
+        $bucketName
     ): array {
         // Validate the params
         $params = self::validate_parameters(self::send_screen_shot_parameters(),
@@ -410,7 +411,7 @@ class quizaccess_exproctor_external extends external_api
                 'quizid' => $quizid,
                 'screenshot' => $screenshot,
                 'bucketName' => $bucketName,
-                'aiproctoring' => $aiproctoring,
+                'aiproctoring' => false,
             )
         );
 
