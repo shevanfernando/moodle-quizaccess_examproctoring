@@ -142,7 +142,7 @@ class aws_s3
 
             $items = $this->getItemsInS3($bucketName);
 
-            if (empty($items)) {
+            if (!$items->valid()) {
                 // Delete the bucket
                 $this->s3Client->deleteBucket(array('Bucket' => $bucketName));
 
