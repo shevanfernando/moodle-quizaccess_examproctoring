@@ -130,9 +130,7 @@ class aws_s3
         try {
             // Delete the objects in the bucket before attempting to delete
             // the bucket
-            $iterator = $this->s3Client->getIterator('ListObjects', array(
-                'Bucket' => $bucketName
-            ));
+            $iterator = $this->getItemsInS3($bucketName);
 
             foreach ($iterator as $object) {
                 if (!empty($evidencetype) && (explode('-', $object['Key'])[0]
@@ -142,17 +140,36 @@ class aws_s3
                 $this->deleteImage($bucketName, $object['Key']);
             }
 
-            // Delete the bucket
-            $this->s3Client->deleteBucket(array('Bucket' => $bucketName));
+            $items = $this->getItemsInS3($bucketName);
 
-            // Wait until the bucket is not accessible
-            $this->s3Client->waitUntil('BucketNotExists',
-                array('Bucket' => $bucketName));
+            if (empty($items)) {
+                // Delete the bucket
+                $this->s3Client->deleteBucket(array('Bucket' => $bucketName));
+
+                // Wait until the bucket is not accessible
+                $this->s3Client->waitUntil('BucketNotExists',
+                    array('Bucket' => $bucketName));
+            }
 
             return true;
         } catch (AwsException $e) {
             return 'Error: '.$e->getAwsErrorMessage();
         }
+    }
+
+    /**
+     *
+     * Get all the items in s3 bucket
+     *
+     * @param $bucketName
+     *
+     * @return \Iterator
+     */
+    private function getItemsInS3($bucketName): \Iterator
+    {
+        return $this->s3Client->getIterator('ListObjects', array(
+            'Bucket' => $bucketName
+        ));
     }
 
     /**
