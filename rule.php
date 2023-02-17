@@ -224,11 +224,13 @@ class quizaccess_exproctor extends quiz_access_rule_base
      */
     private static function is_exproctor_settings_locked(string $quizid): bool
     {
+        global $DB;
+
         if (empty($quizid)) {
             return false;
         }
 
-        return quiz_has_attempts($quizid);
+        return $DB->record_exists('quiz_attempts', array('quiz' => $quizid));
     }
 
     /**
