@@ -78,7 +78,7 @@ export const init = (props) => {
     get_webcam_share_permission();
     props.is_quiz_started = true;
     takepicture();
-    setInterval(takepicture, props.proctoringmethod === 2 ? 1000 : props.screenshotdelay);
+    setInterval(takepicture, props.proctoringmethod == 2 ? 1000 : props.screenshotdelay);
   });
 
   const clearphoto = () => {
