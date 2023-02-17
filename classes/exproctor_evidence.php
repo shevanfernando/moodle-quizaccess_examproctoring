@@ -176,19 +176,21 @@ class exproctor_evidence extends persistent
                 $bucketName =
                     $s3->getBucketNameUsingUrl($persistent->get("url"));
                 if ($isdeleteall) {
-                    $s3->deleteBucket($bucketName);
+                    $s3->deleteBucket($bucketName,
+                        $persistent->get("evidencetype"));
+                    break;
                 } else {
                     $s3->deleteImage($bucketName,
                         $persistent->get("s3filename").".png");
                 }
             }
-
-            // Delete evidence in table
-            $DB->delete_records(static::TABLE,
-                ["id" => $persistent->get("id")]);
         }
 
-        return true;
+        $deletewhere = array_key_exists("id", $conditions) ? "id = :id" :
+            'quizid = :quizid AND courseid = :courseid AND userid = :userid AND '.$DB->sql_compare_text('evidencetype').' = '.$DB->sql_compare_text(':evidencetype');
+
+        return $DB->delete_records_select(static::TABLE, $deletewhere,
+            $conditions);
     }
 
     /**

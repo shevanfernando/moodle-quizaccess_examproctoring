@@ -121,10 +121,11 @@ class aws_s3
      *  Delete S3 Bucket
      *
      * @param $bucketName
+     * @param $evidencetype
      *
      * @return bool|string
      */
-    public function deleteBucket($bucketName)
+    public function deleteBucket($bucketName, $evidencetype = null)
     {
         try {
             // Delete the objects in the bucket before attempting to delete
@@ -134,6 +135,10 @@ class aws_s3
             ));
 
             foreach ($iterator as $object) {
+                if (!empty($evidencetype) && (explode('-', $object['Key'])[0]
+                        !== $evidencetype)) {
+                    continue;
+                }
                 $this->deleteImage($bucketName, $object['Key']);
             }
 
