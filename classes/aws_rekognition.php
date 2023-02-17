@@ -30,6 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/aws_sdk/aws-autoloader.php');
 
+use Aws\Rekognition\Exception\RekognitionException;
 use Aws\Rekognition\RekognitionClient;
 use Aws\Result;
 
@@ -74,16 +75,19 @@ class aws_rekognition
         $imageData,
         $fileName
     ) {
+        try {
+            $isthereanyphone = $this->getObjectDetails($imageData);
+            $isfacialanalysisfalse = $this->getFaceDetails($imageData);
 
-        $isthereanyphone = $this->getObjectDetails($imageData);
-        $isfacialanalysisfalse = $this->getFaceDetails($imageData);
+            if ($isfacialanalysisfalse || $isthereanyphone) {
+                return $this->s3client->saveImage($bucketName, $imageData,
+                    $fileName);
+            }
 
-        if ($isfacialanalysisfalse || $isthereanyphone) {
-            return $this->s3client->saveImage($bucketName, $imageData,
-                $fileName);
+            return array();
+        } catch (RekognitionException $e) {
+            return 'Error: '.$e->getMessage();
         }
-
-        return array();
     }
 
     /**
@@ -95,23 +99,27 @@ class aws_rekognition
      */
     public function getObjectDetails($image): bool
     {
-        // Call DetectLabels
-        $result = $this->rekognitionclient->DetectLabels(array(
-            "Features" => array('GENERAL_LABELS'),
-            'Image' => array(
-                'Bytes' => $image,
-            ),
-        ));
+        try {
+            // Call DetectLabels
+            $result = $this->rekognitionclient->DetectLabels(array(
+                "Features" => array('GENERAL_LABELS'),
+                'Image' => array(
+                    'Bytes' => $image,
+                ),
+            ));
 
-        $dataset = $result->get("Labels");
+            $dataset = $result->get("Labels");
 
-        foreach ($dataset as $data) {
-            if ($data["Name"] === "Mobile Phone" || $data["Name"] === "Phone") {
-                return true;
+            foreach ($dataset as $data) {
+                if ($data["Name"] === "Mobile Phone" || $data["Name"] === "Phone") {
+                    return true;
+                }
             }
-        }
 
-        return false;
+            return false;
+        } catch (RekognitionException $e) {
+            return "Error: ".$e->getMessage();
+        }
     }
 
     /**
@@ -123,27 +131,29 @@ class aws_rekognition
      */
     public function getFaceDetails($image): bool
     {
-        // Call DetectFaces
-        $result = $this->rekognitionclient->DetectFaces(array(
-                'Image' => array(
-                    'Bytes' => $image,
-                ),
-                'Attributes' => array('ALL')
-            )
-        );
+        try {
+            // Call DetectFaces
+            $result = $this->rekognitionclient->DetectFaces(array(
+                    'Image' => array(
+                        'Bytes' => $image,
+                    ),
+                    'Attributes' => array('ALL')
+                )
+            );
 
-        $dataset = $result->get("FaceDetails");
+            $dataset = $result->get("FaceDetails");
 
-        if (count($dataset) !== 1) {
-            return true;
-        } else {
-            var_dump($dataset[0]);
-
-            if ($dataset[0]["EyesOpen"]["Confidence"] < 90 || $dataset[0]["MouthOpen"]["Value"] || $dataset[0]["EyesOpen"]["Value"] === false) {
+            if (count($dataset) !== 1) {
                 return true;
+            } else {
+                if ($dataset[0]["EyesOpen"]["Confidence"] < 90 || $dataset[0]["MouthOpen"]["Value"] || $dataset[0]["EyesOpen"]["Value"] === false) {
+                    return true;
+                }
             }
-        }
 
-        return false;
+            return false;
+        } catch (RekognitionException $e) {
+            return "Error: ".$e->getMessage();
+        }
     }
 }

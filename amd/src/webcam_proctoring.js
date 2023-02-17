@@ -71,14 +71,20 @@ export const init = (props) => {
     localStorage.removeItem("bucketName");
     props.is_quiz_started = true;
     takepicture();
-    setInterval(takepicture, props.proctoringmethod == 2 ? 1000 : props.screenshotdelay);
+    setInterval(
+      takepicture,
+      props.proctoringmethod == 2 ? 5000 : props.screenshotdelay
+    );
   });
 
   $(`#${$("[id^=single_button].btn.btn-primary")[0].id}`).click(function () {
     get_webcam_share_permission();
     props.is_quiz_started = true;
     takepicture();
-    setInterval(takepicture, props.proctoringmethod == 2 ? 1000 : props.screenshotdelay);
+    setInterval(
+      takepicture,
+      props.proctoringmethod == 2 ? 5000 : props.screenshotdelay
+    );
   });
 
   const clearphoto = () => {
@@ -92,6 +98,11 @@ export const init = (props) => {
 
   const takepicture = () => {
     props.id = localStorage.getItem("attemptId");
+
+    if (props.proctoringmethod == 2) {
+      width = 1920;
+      height = 1080;
+    }
 
     if (props.is_quiz_started && props.id) {
       const context = canvas.getContext("2d");
@@ -119,11 +130,8 @@ export const init = (props) => {
           args: params,
         };
 
-        window.console.log(params);
-
         Ajax.call([request])[0]
           .done((data) => {
-            window.console.log(data);
             if (data.warnings.length !== 0) {
               if (video) {
                 Notification.addNotification({
