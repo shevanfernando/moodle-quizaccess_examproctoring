@@ -76,6 +76,9 @@ export const init = (props) => {
 
   $(`#${$("[id^=single_button].btn.btn-primary")[0].id}`).click(function () {
     get_webcam_share_permission();
+    props.is_quiz_started = true;
+    takepicture();
+    setInterval(takepicture, props.screenshotdelay);
   });
 
   const clearphoto = () => {

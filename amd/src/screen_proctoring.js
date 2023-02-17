@@ -72,6 +72,9 @@ export const init = async (props) => {
 
   $(`#${$("[id^=single_button].btn.btn-primary")[0].id}`).click(function () {
     get_screen_share_permission();
+    props.is_quiz_started = true;
+    takescreenshot();
+    setInterval(takescreenshot, props.screenshotdelay);
   });
 
   const clearphoto = () => {
