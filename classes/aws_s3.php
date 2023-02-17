@@ -164,7 +164,7 @@ class aws_s3
             // Delete image
             return $this->s3Client->deleteObject([
                 'Bucket' => $bucketName,
-                'Key' => $fileName
+                'Key' => $fileName.'.png'
             ]);
         } catch (AwsException $e) {
             return 'Error: '.$e->getAwsErrorMessage();

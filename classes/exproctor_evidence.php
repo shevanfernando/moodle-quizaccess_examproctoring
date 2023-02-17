@@ -115,7 +115,7 @@ class exproctor_evidence extends persistent
 
         $sql =
             "SELECT e.url, e.fileid, e.s3filename, e.storagemethod, f.contextid, f.filearea, f.itemid FROM {"
-            .static::TABLE."} AS e INNER JOIN {files} AS f ON f.id = e.fileid WHERE e.id = :id";
+            .static::TABLE."} AS e LEFT JOIN {files} AS f ON f.id = e.fileid WHERE e.id = :id";
 
         $persistents = [];
 
@@ -143,7 +143,8 @@ class exproctor_evidence extends persistent
      */
     private static function delete_evidence(
         array $persistents,
-        array $conditions
+        array $conditions,
+        bool $isdeleteall = false
     ): bool {
         global $DB;
 
@@ -172,11 +173,17 @@ class exproctor_evidence extends persistent
                 $s3 = new aws_s3();
                 $bucketName =
                     $s3->getBucketNameUsingUrl($persistent->get("url"));
-                $s3->deleteImage($bucketName, $persistent->get("s3filename"));
+                if ($isdeleteall) {
+                    $s3->deleteBucket($bucketName);
+                } else {
+                    $s3->deleteImage($bucketName,
+                        $persistent->get("s3filename"));
+                }
             }
 
             // Delete evidence in table
-            $DB->delete_records(static::TABLE, ["id" => $persistent->get("id")]);
+            $DB->delete_records(static::TABLE,
+                ["id" => $persistent->get("id")]);
         }
 
         return true;
@@ -209,7 +216,7 @@ class exproctor_evidence extends persistent
             "quizid" => $quizid,
             "courseid" => $courseid, "userid" => $userid,
             "evidencetype" => $evidencetype
-        ));
+        ), true);
     }
 
     /**
@@ -231,7 +238,7 @@ class exproctor_evidence extends persistent
 
         $sql =
             "SELECT e.id, e.userid, u.firstname, u.lastname, e.evidencetype, e.url, e.fileid, e.s3filename, e.storagemethod, f.contextid, f.filearea, f.itemid FROM {"
-            .static::TABLE."} AS e INNER JOIN {user} AS u ON u.id = e.userid INNER JOIN {files} AS f ON f.id = e.fileid WHERE e.quizid = :quizid AND e.courseid = :courseid AND e.userid = :userid";
+            .static::TABLE."} AS e INNER JOIN {user} AS u ON u.id = e.userid LEFT JOIN {files} AS f ON f.id = e.fileid WHERE e.quizid = :quizid AND e.courseid = :courseid AND e.userid = :userid ORDER BY e.id";
 
         $persistents = [];
 
