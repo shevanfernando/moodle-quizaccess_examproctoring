@@ -28,7 +28,7 @@ global $CFG;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/aws_sdk/aws-autoloader.php');
+require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/aws_sdk/aws-autoloader.php');
 
 use Aws\Exception\AwsException;
 use Aws\Result;
@@ -51,7 +51,8 @@ class aws_s3
     {
         global $DB;
 
-        $records = $DB->get_records("config_plugins", ['plugin' => 'quizaccess_exproctor'], 'id', 'name, value');
+        $records = $DB->get_records("config_plugins",
+            ['plugin' => 'quizaccess_exproctor'], 'id', 'name, value');
 
         foreach ($records as $elements) {
             $this->data[$elements->name] = $elements->value;
@@ -59,10 +60,10 @@ class aws_s3
 
         if (!empty($this->data)) {
             $this->s3Client = new S3Client([
-                'version'     => 'latest',
-                'region'      => $this->data['awsregion'],
+                'version' => 'latest',
+                'region' => $this->data['awsregion'],
                 'credentials' => [
-                    'key'    => $this->data['awsaccesskey'],
+                    'key' => $this->data['awsaccesskey'],
                     'secret' => $this->data['awssecretkey']
                 ]
             ]);
@@ -112,7 +113,7 @@ class aws_s3
 
             return true;
         } catch (AwsException $e) {
-            return 'Error: ' . $e->getAwsErrorMessage();
+            return 'Error: '.$e->getAwsErrorMessage();
         }
     }
 
@@ -120,6 +121,7 @@ class aws_s3
      *  Delete S3 Bucket
      *
      * @param $bucketName
+     *
      * @return bool|string
      */
     public function deleteBucket($bucketName)
@@ -139,11 +141,12 @@ class aws_s3
             $this->s3Client->deleteBucket(array('Bucket' => $bucketName));
 
             // Wait until the bucket is not accessible
-            $this->s3Client->waitUntil('BucketNotExists', array('Bucket' => $bucketName));
+            $this->s3Client->waitUntil('BucketNotExists',
+                array('Bucket' => $bucketName));
 
             return true;
         } catch (AwsException $e) {
-            return 'Error: ' . $e->getAwsErrorMessage();
+            return 'Error: '.$e->getAwsErrorMessage();
         }
     }
 
@@ -152,6 +155,7 @@ class aws_s3
      *
      * @param $bucketName
      * @param $fileName
+     *
      * @return Result|string
      */
     public function deleteImage($bucketName, $fileName)
@@ -160,10 +164,10 @@ class aws_s3
             // Delete image
             return $this->s3Client->deleteObject([
                 'Bucket' => $bucketName,
-                'Key'    => $fileName
+                'Key' => $fileName
             ]);
         } catch (AwsException $e) {
-            return 'Error: ' . $e->getAwsErrorMessage();
+            return 'Error: '.$e->getAwsErrorMessage();
         }
     }
 
@@ -177,14 +181,11 @@ class aws_s3
         global $DB;
 
         try {
-            $result = [];
-
-            foreach (["quizaccess_exproctor_wb_logs",
-                         "quizaccess_exproctor_sc_logs"] as $table) {
-                $r = $DB->get_records($table, array("attemptid" => $attempt));
-
-                $result = array_merge($result, $r);
-            }
+            $query =
+                "SELECT e.url FROM {quizaccess_exproctor_evid} AS e WHERE e.attemptid = :attemptid ORDER BY e.id DESC LIMIT 1";
+            $result =
+                $DB->get_record_sql($query,
+                    array("attemptid" => (int) $attempt));
 
             if (empty($result)) {
                 # Create the bucket name
@@ -196,21 +197,24 @@ class aws_s3
                 ]);
 
                 // Poll the bucket until it is accessible
-                $this->s3Client->waitUntil('BucketExists', array('Bucket' => $bucketName));
+                $this->s3Client->waitUntil('BucketExists',
+                    array('Bucket' => $bucketName));
             } else {
-                $bucketName = empty($result[0]->screenshot) ? $result[0]->webcamshot : $result[0]->screenshot;
+                $bucketName = $result->url;
                 $bucketName = $this->getBucketNameUsingUrl($bucketName);
             }
 
             return $bucketName;
         } catch (AwsException $e) {
-            return 'Error: ' . $e->getAwsErrorMessage();
+            return 'Error: '.$e->getAwsErrorMessage();
+        } catch (dml_exception $e) {
+            return 'Error: '.$e->getMessage();
         }
     }
 
     public function getBucketNameUsingUrl(string $url)
     {
-        $bucketName = explode(".s3." . $this->data["awsregion"], $url)[0];
+        $bucketName = explode(".s3.".$this->data["awsregion"], $url)[0];
         return str_replace("https://", "", $bucketName);
     }
 
@@ -220,6 +224,7 @@ class aws_s3
      * @param $bucketName
      * @param $imageData
      * @param $fileName
+     *
      * @return Result|string
      */
     public function saveImage($bucketName, $imageData, $fileName)
@@ -227,13 +232,13 @@ class aws_s3
         try {
             // Save image
             return $this->s3Client->putObject([
-                'Bucket'      => $bucketName,
-                'Key'         => $fileName,
-                'Body'        => $imageData,
+                'Bucket' => $bucketName,
+                'Key' => $fileName,
+                'Body' => $imageData,
                 'ContentType' => 'image/png'
             ]);
         } catch (AwsException $e) {
-            return 'Error: ' . $e->getAwsErrorMessage();
+            return 'Error: '.$e->getAwsErrorMessage();
         }
     }
 
@@ -245,15 +250,16 @@ class aws_s3
             //Creating a presigned URL
             $cmd = $this->s3Client->getCommand('GetObject', [
                 'Bucket' => $bucketName,
-                'Key'    => $fileName . '.png'
+                'Key' => $fileName.'.png'
             ]);
 
-            $request = $this->s3Client->createPresignedRequest($cmd, '+20 minutes');
+            $request =
+                $this->s3Client->createPresignedRequest($cmd, '+20 minutes');
 
             // Get the actual presigned-url
-            return (string)$request->getUri();
+            return (string) $request->getUri();
         } catch (AwsException $e) {
-            return 'Error: ' . $e->getAwsErrorMessage();
+            return 'Error: '.$e->getAwsErrorMessage();
         }
     }
 }
