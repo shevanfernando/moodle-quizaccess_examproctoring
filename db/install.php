@@ -22,9 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-
 /**
  *  Assign legacy capabilities
  *
@@ -34,8 +31,7 @@ defined('MOODLE_INTERNAL') || die();
  * @throws coding_exception
  * @throws dml_exception
  */
-function assign_exproctor_legacy_capabilities($capability, $legacyperms): bool
-{
+function assign_exproctor_legacy_capabilities($capability, $legacyperms): bool {
     foreach ($legacyperms as $type => $perm) {
 
         $systemcontext = context_system::instance();
@@ -53,17 +49,15 @@ function assign_exproctor_legacy_capabilities($capability, $legacyperms): bool
     return true;
 }
 
-
 /**
  * Create capabilities for ExProctor plugin
  *
- * @param $ex_proctor_id
+ * @param $exproctorid
  * @return bool
  * @throws coding_exception
  * @throws dml_exception
  */
-function update_exproctor_capabilities($ex_proctor_id): bool
-{
+function update_exproctor_capabilities($exproctorid): bool {
     global $DB, $OUTPUT;
 
     $component = 'quizaccess_exproctor';
@@ -84,11 +78,11 @@ function update_exproctor_capabilities($ex_proctor_id): bool
     $cachedcaps = get_cached_capabilities($component);
     if ($cachedcaps) {
         foreach ($cachedcaps as $cachedcap) {
-            array_push($storedcaps, $cachedcap->name);
-            // update risk bitmasks and context levels in existing capabilities if needed
+            $storedcaps[] = $cachedcap->name;
+            // Update risk bitmasks and context levels in existing capabilities if needed.
             if (array_key_exists($cachedcap->name, $filecaps)) {
                 if (!array_key_exists('riskbitmask', $filecaps[$cachedcap->name])) {
-                    $filecaps[$cachedcap->name]['riskbitmask'] = 0; // no risk if not specified
+                    $filecaps[$cachedcap->name]['riskbitmask'] = 0; // No risk if not specified.
                 }
                 if ($cachedcap->captype != $filecaps[$cachedcap->name]['captype']) {
                     $updatecap = new stdClass();
@@ -104,7 +98,7 @@ function update_exproctor_capabilities($ex_proctor_id): bool
                 }
 
                 if (!array_key_exists('contextlevel', $filecaps[$cachedcap->name])) {
-                    $filecaps[$cachedcap->name]['contextlevel'] = 0; // no context level defined
+                    $filecaps[$cachedcap->name]['contextlevel'] = 0; // No context level defined.
                 }
                 if ($cachedcap->contextlevel != $filecaps[$cachedcap->name]['contextlevel']) {
                     $updatecap = new stdClass();
@@ -123,10 +117,9 @@ function update_exproctor_capabilities($ex_proctor_id): bool
     $newcaps = array();
 
     foreach ($filecaps as $filecap => $def) {
-        if (!$storedcaps ||
-            ($storedcaps && in_array($filecap, $storedcaps) === false)) {
+        if (!$storedcaps || (in_array($filecap, $storedcaps) === false)) {
             if (!array_key_exists('riskbitmask', $def)) {
-                $def['riskbitmask'] = 0; // no risk if not specified
+                $def['riskbitmask'] = 0; // No risk if not specified.
             }
             $newcaps[$filecap] = $def;
         }
@@ -149,17 +142,17 @@ function update_exproctor_capabilities($ex_proctor_id): bool
         if (isset($capdef['clonepermissionsfrom']) && in_array($capdef['clonepermissionsfrom'], $existingcaps)) {
             if ($rolecapabilities = $DB->get_records('role_capabilities', array('capability' => $capdef['clonepermissionsfrom']))) {
                 foreach ($rolecapabilities as $rolecapability) {
-                    //assign_capability will update rather than insert if capability exists
+                    // Assign_capability will update rather than insert if capability exists.
                     if (!assign_capability($capname, $rolecapability->permission,
                         $rolecapability->roleid, $rolecapability->contextid, true)) {
                         echo $OUTPUT->notification('Could not clone capabilities for ' . $capname);
                     }
                 }
             }
-            // we ignore archetype key if we have cloned permissions
+            // We ignore archetype key if we have cloned permissions.
         } else if (isset($capdef['archetypes']) && is_array($capdef['archetypes'])) {
             assign_exproctor_legacy_capabilities($capname, $capdef['archetypes']);
-            // 'legacy' is for backward compatibility with 1.9 access.php
+            // The 'legacy' is for backward compatibility with 1.9 access.php.
         } else if (isset($capdef['legacy']) && is_array($capdef['legacy'])) {
             assign_exproctor_legacy_capabilities($capname, $capdef['legacy']);
         }
@@ -171,7 +164,7 @@ function update_exproctor_capabilities($ex_proctor_id): bool
 
     $systemcontext = context_system::instance();
 
-    $quiz_capabilities = array(
+    $quizcapabilities = array(
         'mod/assign:view',
         'mod/assign:grade',
         'mod/assign:viewgrades',
@@ -187,12 +180,12 @@ function update_exproctor_capabilities($ex_proctor_id): bool
         'mod/quiz:viewreports'
     );
 
-    foreach ($quiz_capabilities as $capability) {
-        // Add quiz access to the Proctor role
-        assign_capability($capability, 1, $ex_proctor_id, $systemcontext->id);
+    foreach ($quizcapabilities as $capability) {
+        // Add quiz access to the Proctor role.
+        assign_capability($capability, 1, $exproctorid, $systemcontext->id);
     }
 
-    // reset static caches
+    // Reset static caches.
     accesslib_reset_role_cache();
 
     // Flush the cached again, as we have changed DB.
@@ -208,8 +201,7 @@ function update_exproctor_capabilities($ex_proctor_id): bool
  * @throws coding_exception
  * @throws dml_exception
  */
-function create_exproctor_role(): int
-{
+function create_exproctor_role(): int {
     global $DB;
 
     // Insert the role record.
@@ -219,7 +211,7 @@ function create_exproctor_role(): int
     $role->description = get_string('proctor:description', 'quizaccess_exproctor');
     $role->archetype = get_string('proctor:short_name', 'quizaccess_exproctor');
 
-    //find free sort order number
+    // Find free sort order number.
     $role->sortorder = $DB->get_field('role', 'MAX(sortorder) + 1', array());
 
     if (empty($role->sortorder)) {
@@ -236,14 +228,13 @@ function create_exproctor_role(): int
  * @throws coding_exception
  * @throws dml_exception
  */
-function xmldb_quizaccess_exproctor_install()
-{
+function xmldb_quizaccess_exproctor_install() {
     // Install the Exam Proctor role to system.
-    $ex_proctor_id = create_exproctor_role();
+    $exproctorid = create_exproctor_role();
 
-    // Now is the correct moment to install capabilities - after creation of legacy roles, but before assigning of roles
-    update_exproctor_capabilities($ex_proctor_id);
+    // Now is the correct moment to install capabilities - after creation of legacy roles, but before assigning of roles.
+    update_exproctor_capabilities($exproctorid);
 
     // Set up the context levels where you can assign each role.
-    set_role_contextlevels($ex_proctor_id, array(CONTEXT_COURSE, CONTEXT_MODULE));
+    set_role_contextlevels($exproctorid, array(CONTEXT_COURSE, CONTEXT_MODULE));
 }

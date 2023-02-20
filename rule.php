@@ -22,46 +22,32 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-global $CFG;
-
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/mod/quiz/accessrule/accessrulebase.php');
+global $CFG;
 
-require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/external.php');
-require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
+require_once($CFG->dirroot . '/mod/quiz/accessrule/accessrulebase.php');
+
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/external.php');
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
 
 use core\output\notification;
 use quizaccess_exproctor\aws_s3;
 use quizaccess_exproctor\link_generator;
 
-class quizaccess_exproctor extends quiz_access_rule_base
-{
-
-    //    /**
-    //     * Constructor
-    //     *
-    //     * @param $quizobj
-    //     * @param $timenow
-    //     */
-    //    public function __construct($quizobj, $timenow)
-    //    {
-    //        parent::__construct($quizobj, $timenow);
-    //    }
-
+class quizaccess_exproctor extends quiz_access_rule_base {
     /**
      * Information, such as might be shown on the quiz view page, relating to this restriction.
      * There is no obligation to return anything. If it is not appropriate to tell students
      * about this rule, then just return ''.
      *
-     * @param  quiz  $quizobj
-     * @param  int   $timenow
-     * @param  bool  $canignoretimelimits
+     * @param quiz $quizobj
+     * @param int $timenow
+     * @param bool $canignoretimelimits
      *
      * @return quiz_access_rule_base|quizaccess_exproctor|null
      */
-    public static function make(quiz $quizobj, $timenow, $canignoretimelimits)
-    {
+    public static function make(quiz $quizobj, $timenow, $canignoretimelimits) {
         if (!empty($quizobj->get_quiz()->proctoringmethod)) {
             if (empty($quizobj->get_quiz()->webcamproctoringrequired) && empty($quizobj->get_quiz()->screenproctoringrequired)) {
                 return null;
@@ -78,8 +64,8 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * method is called from mod_quiz_mod_form::definition(), while the
      * security section is being built.
      *
-     * @param  mod_quiz_mod_form  $quizform  the quiz settings form that is being built.
-     * @param  MoodleQuickForm    $mform     the wrapped MoodleQuickForm.
+     * @param mod_quiz_mod_form $quizform the quiz settings form that is being built.
+     * @param MoodleQuickForm $mform the wrapped MoodleQuickForm.
      *
      * @throws coding_exception
      */
@@ -89,11 +75,11 @@ class quizaccess_exproctor extends quiz_access_rule_base
     ) {
         global $OUTPUT;
 
-        // this only for debug the code.
-        // TODO: Remove this before push the code into git hub
+        // This only for debug the code.
+        // TODO: Remove this before push the code into git hub.
         get_string_manager()->reset_caches();
 
-        $proctor_methods = array(
+        $proctormethods = array(
             0 => get_string('not_required', 'quizaccess_exproctor'),
             1 => get_string(
                 'proctoring_method_one',
@@ -101,21 +87,20 @@ class quizaccess_exproctor extends quiz_access_rule_base
             ), 2 => get_string(
                 'proctoring_method_two',
                 'quizaccess_exproctor'
-            ),
-            //                3 => get_string('proctoring_method_three', 'quizaccess_exproctor'),
+            )
         );
 
         $s3 = new aws_s3();
 
-        if ($s3->getData()['storagemethod'] !== 'AWS(S3)') {
-            unset($proctor_methods[2]); // Remove Ai proctor method
+        if ($s3->get_data()['storagemethod'] !== 'AWS(S3)') {
+            unset($proctormethods[2]); // Remove Ai proctor method.
         }
 
         $mform->addElement(
             'select',
             'proctoringmethod',
             get_string('proctoringmethod', 'quizaccess_exproctor'),
-            $proctor_methods
+            $proctormethods
         );
         $mform->addHelpButton(
             'proctoringmethod',
@@ -162,21 +147,21 @@ class quizaccess_exproctor extends quiz_access_rule_base
                     'screen_shot_delay_method_one',
                     'quizaccess_exproctor'
                 ), 10 => get_string(
-                    'screen_shot_delay_method_two',
-                    'quizaccess_exproctor'
-                ), 15 => get_string(
-                    'screen_shot_delay_method_three',
-                    'quizaccess_exproctor'
-                ), 20 => get_string(
-                    'screen_shot_delay_method_four',
-                    'quizaccess_exproctor'
-                ), 25 => get_string(
-                    'screen_shot_delay_method_five',
-                    'quizaccess_exproctor'
-                ), 30 => get_string(
-                    'screen_shot_delay_method_six',
-                    'quizaccess_exproctor'
-                ),
+                'screen_shot_delay_method_two',
+                'quizaccess_exproctor'
+            ), 15 => get_string(
+                'screen_shot_delay_method_three',
+                'quizaccess_exproctor'
+            ), 20 => get_string(
+                'screen_shot_delay_method_four',
+                'quizaccess_exproctor'
+            ), 25 => get_string(
+                'screen_shot_delay_method_five',
+                'quizaccess_exproctor'
+            ), 30 => get_string(
+                'screen_shot_delay_method_six',
+                'quizaccess_exproctor'
+            ),
             )
         );
 
@@ -201,11 +186,10 @@ class quizaccess_exproctor extends quiz_access_rule_base
                 notification::NOTIFY_WARNING
             );
 
-            $notify_element =
-                $mform->createElement('html', $OUTPUT->render($notify));
-            $mform->insertElementBefore($notify_element, 'quizpassword');
+            $notifyelement = $mform->createElement('html', $OUTPUT->render($notify));
+            $mform->insertElementBefore($notifyelement, 'quizpassword');
 
-            // Freeze elements
+            // Freeze elements.
             $mform->freeze('proctoringmethod');
             $mform->freeze('webcamproctoringrequired');
             $mform->freeze('screenproctoringrequired');
@@ -214,16 +198,14 @@ class quizaccess_exproctor extends quiz_access_rule_base
         }
     }
 
-
     /**
      * Check if settings is locked.
      *
-     * @param  string  $quizid  Quiz Id
+     * @param string $quizid Quiz Id
      *
      * @return bool
      */
-    private static function is_exproctor_settings_locked(string $quizid): bool
-    {
+    private static function is_exproctor_settings_locked(string $quizid): bool {
         global $DB;
 
         if (empty($quizid)) {
@@ -237,24 +219,21 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * Save any submitted settings when the quiz settings form is submitted. This
      * is called from quiz_after_add_or_update() in lib.php.
      *
-     * @param  object  $quiz  the data from the quiz form, including $quiz->id
+     * @param object $quiz the data from the quiz form, including $quiz->id
      *                        which is the id of the quiz being saved.
      *
      * @throws dml_exception
      */
-    public static function save_settings($quiz)
-    {
+    public static function save_settings($quiz) {
         global $DB;
 
-        $is_webcam_proctoring_required =
-            (int) $quiz->webcamproctoringrequired;
-        $is_screen_proctoring_required =
-            (int) $quiz->screenproctoringrequired;
+        $iswebcamproctoringrequired = (int) $quiz->webcamproctoringrequired;
+        $isscreenproctoringrequired = (int) $quiz->screenproctoringrequired;
         $proctoringmethod = (int) $quiz->proctoringmethod;
-        $screenshot_delay = (int) $quiz->screenshotdelay;
+        $screenshotdelay = (int) $quiz->screenshotdelay;
         $screenshotwidth = (int) $quiz->screenshotwidth;
 
-        if (empty($is_webcam_proctoring_required) && empty($is_screen_proctoring_required)) {
+        if (empty($iswebcamproctoringrequired) && empty($isscreenproctoringrequired)) {
             $DB->delete_records(
                 'quizaccess_exproctor',
                 array('quizid' => (int) $quiz->id)
@@ -267,11 +246,11 @@ class quizaccess_exproctor extends quiz_access_rule_base
                 $record = new stdClass();
                 $record->quizid = $quiz->id;
                 $record->webcamproctoringrequired =
-                    $is_webcam_proctoring_required;
+                    $iswebcamproctoringrequired;
                 $record->screenproctoringrequired =
-                    $is_screen_proctoring_required;
+                    $isscreenproctoringrequired;
                 $record->proctoringmethod = $proctoringmethod;
-                $record->screenshotdelay = $screenshot_delay;
+                $record->screenshotdelay = $screenshotdelay;
                 $record->screenshotwidth = $screenshotwidth;
                 $DB->insert_record('quizaccess_exproctor', $record);
             } else {
@@ -280,11 +259,11 @@ class quizaccess_exproctor extends quiz_access_rule_base
                     array('quizid' => $quiz->id)
                 );
                 $record->webcamproctoringrequired =
-                    $is_webcam_proctoring_required;
+                    $iswebcamproctoringrequired;
                 $record->screenproctoringrequired =
-                    $is_screen_proctoring_required;
+                    $isscreenproctoringrequired;
                 $record->proctoringmethod = $proctoringmethod;
-                $record->screenshotdelay = $screenshot_delay;
+                $record->screenshotdelay = $screenshotdelay;
                 $record->screenshotwidth = $screenshotwidth;
                 $DB->update_record('quizaccess_exproctor', $record);
             }
@@ -295,13 +274,12 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * Delete any rule-specific settings when the quiz is deleted. This is called
      * from quiz_delete_instance() in lib.php.
      *
-     * @param  object  $quiz  the data from the database, including $quiz->id
+     * @param object $quiz the data from the database, including $quiz->id
      *                        which is the id of the quiz being deleted.
      *
      * @throws dml_exception
      */
-    public static function delete_settings($quiz)
-    {
+    public static function delete_settings($quiz) {
         global $DB;
         $DB->delete_records(
             'quizaccess_exproctor',
@@ -318,7 +296,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * use the get_extra_settings() method instead, but that has
      * performance implications.
      *
-     * @param  int  $quizid  the id of the quiz we are loading settings for. This
+     * @param int $quizid the id of the quiz we are loading settings for. This
      *                       can also be accessed as quiz.id in the SQL. (quiz is a table alisas for {quiz}.)
      *
      * @return array with three elements:
@@ -330,10 +308,10 @@ class quizaccess_exproctor extends quiz_access_rule_base
      *        be used named placeholders, and the placeholder names should start with the
      *        plugin name, to avoid collisions.
      */
-    public static function get_settings_sql($quizid): array
-    {
+    public static function get_settings_sql($quizid): array {
         return array(
-            'e.webcamproctoringrequired,'.'e.screenproctoringrequired,'.'e.proctoringmethod,'.'e.screenshotdelay,'.'e.screenshotwidth',
+            'e.webcamproctoringrequired,' . 'e.screenproctoringrequired,' . 'e.proctoringmethod,' . 'e.screenshotdelay,' .
+            'e.screenshotwidth',
             'LEFT JOIN {quizaccess_exproctor} e ON e.quizid = quiz.id',
             array()
         );
@@ -342,21 +320,20 @@ class quizaccess_exproctor extends quiz_access_rule_base
     /**
      * Check is preflight check is required.
      *
-     * @param  mixed  $attemptid
+     * @param mixed $attemptid
      *
      * @return bool
      */
-    public function is_preflight_check_required($attemptid): bool
-    {
+    public function is_preflight_check_required($attemptid): bool {
         return empty($attemptid);
     }
 
     /**
      * add_preflight_check_form_fields
      *
-     * @param  mod_quiz_preflight_check_form  $quizform
-     * @param  MoodleQuickForm                $mform
-     * @param  mixed                          $attemptid
+     * @param mod_quiz_preflight_check_form $quizform
+     * @param MoodleQuickForm $mform
+     * @param mixed $attemptid
      *
      * @return void
      * @throws coding_exception
@@ -371,16 +348,16 @@ class quizaccess_exproctor extends quiz_access_rule_base
 
         $data['is_quiz_started'] = false;
 
-        // this only for debug the code.
-        // TODO: Remove this before push the code into git hub
+        // This only for debug the code.
+        // TODO: Remove this before push the code into git hub.
         get_string_manager()->reset_caches();
 
         if ($data["webcamproctoringrequired"] && $data["screenproctoringrequired"]) {
             $this->get_screen_proctoring_form_fields($mform, $data, $PAGE);
             $this->get_webcam_proctoring_form_fields($mform, $data, $PAGE);
-        } elseif ($data["screenproctoringrequired"]) {
+        } else if ($data["screenproctoringrequired"]) {
             $this->get_screen_proctoring_form_fields($mform, $data, $PAGE);
-        } elseif ($data["webcamproctoringrequired"]) {
+        } else if ($data["webcamproctoringrequired"]) {
             $this->get_webcam_proctoring_form_fields($mform, $data, $PAGE);
         }
     }
@@ -392,8 +369,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
      *
      * @return array
      */
-    private function get_quiz_details(): array
-    {
+    private function get_quiz_details(): array {
         global $USER;
 
         $response = [];
@@ -414,12 +390,13 @@ class quizaccess_exproctor extends quiz_access_rule_base
 
         $response["screenshotdelay"] = $frequency;
 
-        $image_width = (int) $this->quiz->screenshotwidth;
-        if ($image_width == 0) {
-            $image_width = 320;
+        $imagewidth = (int) $this->quiz->screenshotwidth;
+
+        if ($imagewidth == 0) {
+            $imagewidth = 320;
         }
 
-        $response['image_width'] = $image_width;
+        $response['image_width'] = $imagewidth;
 
         return $response;
     }
@@ -434,8 +411,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * @return void
      * @throws coding_exception
      */
-    private function get_screen_proctoring_form_fields($mform, $data, $PAGE)
-    {
+    private function get_screen_proctoring_form_fields($mform, $data, $PAGE) {
         $mform->addElement(
             'header',
             'screenproctoringheader',
@@ -456,15 +432,6 @@ class quizaccess_exproctor extends quiz_access_rule_base
             '',
             get_string('screenhtml', 'quizaccess_exproctor')
         );
-        //        $mform->addElement(
-        //            'checkbox',
-        //            'screenproctoring',
-        //            '',
-        //            get_string(
-        //                'proctoringlabel',
-        //                'quizaccess_exproctor'
-        //            )
-        //        );
 
         $PAGE->requires->js_call_amd(
             'quizaccess_exproctor/screen_proctoring',
@@ -483,8 +450,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * @return void
      * @throws coding_exception
      */
-    private function get_webcam_proctoring_form_fields($mform, $data, $PAGE)
-    {
+    private function get_webcam_proctoring_form_fields($mform, $data, $PAGE) {
         $mform->addElement(
             'header',
             'webcamproctoringheader',
@@ -526,8 +492,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * @return boolean whether this rule requires that the attemp (and review)
      *      pages must be displayed in a pop-up window.
      */
-    public function attempt_must_be_in_popup(): bool
-    {
+    public function attempt_must_be_in_popup(): bool {
         return true;
     }
 
@@ -535,8 +500,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * @return array any options that are required for showing the attempt page
      *      in a popup window.
      */
-    public function get_popup_options(): array
-    {
+    public function get_popup_options(): array {
         return array(
             'left' => 0, 'top' => 0,
             'fullscreen' => true,
@@ -554,27 +518,21 @@ class quizaccess_exproctor extends quiz_access_rule_base
     /**
      * Validate the preflight check
      *
-     * @param  mixed  $data
-     * @param  mixed  $files
-     * @param  mixed  $errors
-     * @param  mixed  $attemptid
+     * @param mixed $data
+     * @param mixed $files
+     * @param mixed $errors
+     * @param mixed $attemptid
      *
      * @return mixed $errors
      * @throws coding_exception
      */
-    public function validate_preflight_check($data, $files, $errors, $attemptid)
-    {
+    public function validate_preflight_check($data, $files, $errors, $attemptid) {
         $values = self::get_quiz_details();
 
         if (empty($data['webproctoring']) && $values['webcamproctoringrequired']) {
             $errors['webproctoring'] =
                 get_string('you_must_agree_for_webcam', 'quizaccess_exproctor');
         }
-
-        //        if (empty($data['screenproctoring']) && $values['screenproctoringrequired']) {
-        //            $errors['screenproctoring'] =
-        //                get_string('you_must_agree_for_screen', 'quizaccess_exproctor');
-        //        }
 
         return $errors;
     }
@@ -589,27 +547,20 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * @throws coding_exception
      * @throws moodle_exception
      */
-    public function description(): array
-    {
+    public function description(): array {
         $data = self::get_quiz_details();
 
         $proctoringmethod = "";
 
         if ($data["webcamproctoringrequired"] && $data["screenproctoringrequired"]) {
             $proctoringmethod = "webcam & screen";
-        } elseif ($data["screenproctoringrequired"]) {
+        } else if ($data["screenproctoringrequired"]) {
             $proctoringmethod = "screen";
-        } elseif ($data["webcamproctoringrequired"]) {
+        } else if ($data["webcamproctoringrequired"]) {
             $proctoringmethod = "webcam";
         }
 
-        $messages = [
-            get_string(
-                'proctoringheader',
-                'quizaccess_exproctor',
-                $proctoringmethod
-            )
-        ];
+        $messages = [get_string('proctoringheader', 'quizaccess_exproctor', $proctoringmethod)];
 
         $messages[] = $this->get_download_config_button();
 
@@ -623,17 +574,12 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * @throws coding_exception
      * @throws moodle_exception
      */
-    private function get_download_config_button(): string
-    {
+    private function get_download_config_button(): string {
         global $OUTPUT, $USER;
 
         $context = context_module::instance($this->quiz->cmid, MUST_EXIST);
-        if (has_capability(
-            'quizaccess/exproctor:view_report',
-            $context,
-            $USER->id
-        )) {
-            # create a report.php
+        if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id)) {
+            // Create a link for report.
             $httplink =
                 link_generator::get_link(
                     $this->quiz->course,
@@ -656,23 +602,20 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * Sets up the attempt (review or summary) page with any special extra
      * properties required by this rule.
      *
-     * @param  moodle_page  $page  the page object to initialise.
+     * @param moodle_page $page the page object to initialise.
      *
      * @throws coding_exception
      * @throws dml_exception|invalid_parameter_exception
      */
-    public function setup_attempt_page($page)
-    {
-        // TODO: Check this function
+    public function setup_attempt_page($page) {
+        // TODO: Check this function.
         $data = self::get_quiz_details();
 
         $cmid = optional_param('cmid', '', PARAM_INT);
         $attempt = optional_param('attempt', '', PARAM_INT);
-        $bucketName = null;
+        $bucketname = null;
 
-        $page->set_title(
-            $this->quizobj->get_course()->shortname.': '.$page->title
-        );
+        $page->set_title($this->quizobj->get_course()->shortname . ': ' . $page->title);
         $page->set_popup_notification_allowed(
             false
         ); // Prevent message notifications.
@@ -680,15 +623,13 @@ class quizaccess_exproctor extends quiz_access_rule_base
 
         $s3 = new aws_s3();
 
-        if ($s3->getData()['storagemethod'] == 'AWS(S3)') {
-            $bucketName = $s3->createBucket($attempt);
+        if ($s3->get_data()['storagemethod'] == 'AWS(S3)') {
+            $bucketname = $s3->create_bucket($attempt);
         }
 
         if ($cmid) {
-            $page->requires->js_call_amd(
-                'quizaccess_exproctor/store_current_attempt',
-                'store',
-                array($attempt, $bucketName)
+            $page->requires->js_call_amd('quizaccess_exproctor/store_current_attempt', 'store',
+                array($attempt, $bucketname)
             );
         }
 
@@ -714,8 +655,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
      * This is called when the current attempt at the quiz is finished. This is
      * used, set quiz status of the webcam log and screen log tables.
      */
-    public function current_attempt_finished()
-    {
+    public function current_attempt_finished() {
         try {
             global $USER, $PAGE;
             $data = self::get_quiz_details();
@@ -736,7 +676,7 @@ class quizaccess_exproctor extends quiz_access_rule_base
                 );
             }
         } catch (Exception $e) {
-            echo "Error: ".$e->getMessage();
+            echo "Error: " . $e->getMessage();
         }
     }
 }

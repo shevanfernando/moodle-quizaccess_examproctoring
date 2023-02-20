@@ -25,49 +25,49 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = array(
-    'quizaccess/exproctor:send_evidence'   => array(
-        'riskbitmask'  => RISK_SPAM,
-        'captype'      => 'write',
+    'quizaccess/exproctor:send_evidence' => array(
+        'riskbitmask' => RISK_SPAM,
+        'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes'   => array(
-            'student'        => CAP_ALLOW,
-            'teacher'        => CAP_ALLOW,
+        'archetypes' => array(
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW,
-            'proctor'        => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+            'proctor' => CAP_ALLOW,
         )
     ),
-    'quizaccess/exproctor:get_evidence'    => array(
-        'riskbitmask'  => RISK_SPAM,
-        'captype'      => 'read',
+    'quizaccess/exproctor:get_evidence' => array(
+        'riskbitmask' => RISK_SPAM,
+        'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes'   => array(
-            'teacher'        => CAP_ALLOW,
+        'archetypes' => array(
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW,
-            'proctor'        => CAP_ALLOW
+            'manager' => CAP_ALLOW,
+            'proctor' => CAP_ALLOW
         )
     ),
-    'quizaccess/exproctor:view_report'     => array(
-        'riskbitmask'  => RISK_SPAM,
-        'captype'      => 'read',
+    'quizaccess/exproctor:view_report' => array(
+        'riskbitmask' => RISK_SPAM,
+        'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes'   => array(
-            'teacher'        => CAP_ALLOW,
+        'archetypes' => array(
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW,
-            'proctor'        => CAP_ALLOW
+            'manager' => CAP_ALLOW,
+            'proctor' => CAP_ALLOW
         )
     ),
     'quizaccess/exproctor:delete_evidence' => array(
-        'riskbitmask'  => RISK_DATALOSS,
-        'captype'      => 'write',
+        'riskbitmask' => RISK_DATALOSS,
+        'captype' => 'write',
         'contextlevel' => CONTEXT_MODULE,
-        'archetypes'   => array(
-            'teacher'        => CAP_ALLOW,
+        'archetypes' => array(
+            'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager'        => CAP_ALLOW,
-            'proctor'        => CAP_ALLOW,
+            'manager' => CAP_ALLOW,
+            'proctor' => CAP_ALLOW,
         )
     ),
 );

@@ -28,13 +28,10 @@ use coding_exception;
 use moodle_exception;
 use moodle_url;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Generate link for report
  */
-class link_generator
-{
+class link_generator {
     /**
      * Create link
      *
@@ -48,14 +45,15 @@ class link_generator
      * @throws moodle_exception
      */
     public static function get_link(string $courseid, string $quizid,
-                                    string $cmid, bool $proctoring = false,
-                                    bool   $secure = true
+        string $cmid, bool $proctoring = false,
+        bool $secure = true
     ): string {
         // Check of course module exists.
         get_coursemodule_from_id('quiz', $cmid, 0, false, MUST_EXIST);
 
         $url =
-            new moodle_url('/mod/quiz/accessrule/exproctor/report.php?courseid=' . $courseid . '&cmid=' . $cmid . '&quizid=' . $quizid
+            new moodle_url('/mod/quiz/accessrule/exproctor/report.php?courseid=' . $courseid . '&cmid=' . $cmid . '&quizid=' .
+                $quizid
             );
         if ($proctoring) {
             $secure ? $url->set_scheme('proctorings'

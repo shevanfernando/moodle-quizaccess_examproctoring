@@ -22,19 +22,18 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-global $CFG;
-
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir."/externallib.php");
-require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
-require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/aws_rekognition.php');
+global $CFG;
 
-use quizaccess_exproctor\aws_s3;
+require_once($CFG->libdir . "/externallib.php");
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/aws_rekognition.php');
+
 use quizaccess_exproctor\aws_rekognition;
+use quizaccess_exproctor\aws_s3;
 
-class quizaccess_exproctor_external extends external_api
-{
+class quizaccess_exproctor_external extends external_api {
     /**
      * This function set the status of the quiz (Set quiz status as finished)
      *
@@ -46,11 +45,10 @@ class quizaccess_exproctor_external extends external_api
      * @throws dml_exception
      * @throws invalid_parameter_exception
      */
-    public static function set_quiz_status($courseid, $userid, $quizid): bool
-    {
+    public static function set_quiz_status($courseid, $userid, $quizid): bool {
         global $DB;
 
-        // Validate the params
+        // Validate the params.
         $params = self::validate_parameters(self::set_quiz_status_parameters(),
             array(
                 'courseid' => $courseid,
@@ -76,9 +74,7 @@ class quizaccess_exproctor_external extends external_api
      *
      * @return external_function_parameters
      */
-    public static function set_quiz_status_parameters(
-    ): external_function_parameters
-    {
+    public static function set_quiz_status_parameters(): external_function_parameters {
         return new external_function_parameters(array(
             'courseid' => new external_value(PARAM_INT,
                 'course id',
@@ -100,8 +96,7 @@ class quizaccess_exproctor_external extends external_api
      *
      * @return external_description
      */
-    public static function set_quiz_status_returns()
-    {
+    public static function set_quiz_status_returns() {
         return new external_value(PARAM_BOOL,
             'Current quiz attempt status updated'
         );
@@ -114,7 +109,7 @@ class quizaccess_exproctor_external extends external_api
      * @param $attemptid
      * @param $quizid
      * @param $webcamshot
-     * @param $bucketName
+     * @param $bucketname
      * @param $aiproctoring
      *
      * @return array
@@ -126,17 +121,17 @@ class quizaccess_exproctor_external extends external_api
         $attemptid,
         $quizid,
         $webcamshot,
-        $bucketName,
+        $bucketname,
         $aiproctoring
     ): array {
-        // Validate the params
+        // Validate the params.
         $params = self::validate_parameters(self::send_webcam_shot_parameters(),
             array(
                 'courseid' => $courseid,
                 'attemptid' => $attemptid,
                 'quizid' => $quizid,
                 'webcamshot' => $webcamshot,
-                'bucketName' => $bucketName,
+                'bucketName' => $bucketname,
                 'aiproctoring' => $aiproctoring,
             )
         );
@@ -151,9 +146,7 @@ class quizaccess_exproctor_external extends external_api
      *
      * @return external_function_parameters
      */
-    public static function send_webcam_shot_parameters(
-    ): external_function_parameters
-    {
+    public static function send_webcam_shot_parameters(): external_function_parameters {
         return new external_function_parameters(array(
             'courseid' => new external_value(PARAM_INT,
                 'course id',
@@ -187,16 +180,14 @@ class quizaccess_exproctor_external extends external_api
      *
      * @throws dml_exception
      */
-    private static function store_image($params, $type): array
-    {
+    private static function store_image($params, $type): array {
         global $USER, $DB;
 
-        $table_name = "quizaccess_exproctor_evid";
+        $tablename = "quizaccess_exproctor_evid";
         $fileid = null;
         $s3filename = null;
-        $url = null;
 
-        // get last record and check the quiz is finished or not
+        // Get last record and check the quiz is finished or not.
         $conditions = array(
             'courseid' => (int) $params['courseid'],
             'attemptid' => (int) $params['attemptid'],
@@ -209,12 +200,12 @@ class quizaccess_exproctor_external extends external_api
         $warnings = array();
         $id = null;
 
-        $number_of_records =
-            $DB->count_records_sql("SELECT COUNT(id) FROM {".$table_name."} WHERE courseid = :courseid AND attemptid = :attemptid AND quizid = :quizid AND userid = :userid AND isquizfinished = :isquizfinished AND evidencetype = :evidencetype",
-                $conditions);
+        $numberofrecords = $DB->count_records_sql("SELECT COUNT(id) FROM {" . $tablename . "} WHERE courseid = :courseid AND " .
+            " attemptid = :attemptid AND quizid = :quizid AND userid = :userid AND isquizfinished = :isquizfinished AND " .
+            "evidencetype = :evidencetype", $conditions);
 
-        if ($number_of_records == 0) {
-            $s3Client = new aws_s3();
+        if ($numberofrecords == 0) {
+            $s3client = new aws_s3();
 
             if ($type == 'screen') {
                 $data = $params['screenshot'];
@@ -222,7 +213,7 @@ class quizaccess_exproctor_external extends external_api
                 $data = $params['webcamshot'];
             }
 
-            $settings = $s3Client->getData();
+            $settings = $s3client->get_data();
 
             $attemptid = $params['attemptid'];
             $courseid = $params['courseid'];
@@ -241,7 +232,7 @@ class quizaccess_exproctor_external extends external_api
                 $fs = get_file_storage();
                 $record->filepath = file_correct_filepath($record->filepath);
 
-                $result = self::get_url_and_file_id($data, $type, $attemptid,
+                $result = self::get_url_and_fileid($data, $type, $attemptid,
                     $USER->id, $courseid,
                     $context->id, $record, $fs
                 );
@@ -253,23 +244,17 @@ class quizaccess_exproctor_external extends external_api
                 list(, $data) = explode(',', $data);
                 $data = base64_decode($data);
                 $filename =
-                    $type.'-'.$attemptid.'-'.$USER->id.'-'.$courseid.'-'.time().rand(1,
-                        1000).'.png';
+                    $type . '-' . $attemptid . '-' . $USER->id . '-' . $courseid . '-' . time() . rand(1, 1000) . '.png';
 
                 if ($type === "webcam" && $params['aiproctoring']) {
-                    // AI proctoring
+                    // AI proctoring.
                     $rekognition = new aws_rekognition();
-                    $result =
-                        $rekognition->storeEvidenceWhichFalseAiProctor($params['bucketName'],
-                            $data, $filename);
+                    $result = $rekognition->store_evidence_which_false_ai_proctor($params['bucketName'], $data, $filename);
                     if (empty($result)) {
                         return ["id" => 0, "warnings" => $warnings];
                     }
                 } else {
-                    $result =
-                        $s3Client->saveImage($params['bucketName'], $data,
-                            $filename
-                        );
+                    $result = $s3client->save_image($params['bucketName'], $data, $filename);
                 }
 
                 $url = $result['ObjectURL'];
@@ -288,7 +273,7 @@ class quizaccess_exproctor_external extends external_api
             $record->timemodified = time();
             $record->storagemethod = $settings["storagemethod"];
             $record->evidencetype = $type;
-            $id = $DB->insert_record($table_name, $record, true);
+            $id = $DB->insert_record($tablename, $record);
         } else {
             $warnings[] = "Quiz already finished!";
         }
@@ -314,7 +299,7 @@ class quizaccess_exproctor_external extends external_api
      * @return array
      * @throws dml_exception
      */
-    private static function get_url_and_file_id(
+    private static function get_url_and_fileid(
         $data,
         $type,
         $attemptid,
@@ -330,8 +315,8 @@ class quizaccess_exproctor_external extends external_api
         list(, $data) = explode(',', $data);
         $data = base64_decode($data);
         $filename =
-            $type.'-'.$attemptid.'-'.$userid.'-'.$courseid.'-'.time().rand(1,
-                1000).'.png';
+            $type . '-' . $attemptid . '-' . $userid . '-' . $courseid . '-' . time() . rand(1,
+                1000) . '.png';
 
         $record->courseid = $courseid;
         $record->filename = $filename;
@@ -350,20 +335,19 @@ class quizaccess_exproctor_external extends external_api
 
         $filerecords = $DB->get_records("files", $conditions);
 
-        $file_id = 0;
+        $fileid = 0;
         foreach ($filerecords as $filerecord) {
-            $file_id = $filerecord->id;
+            $fileid = $filerecord->id;
         }
 
         return array(
-            "file_id" => $file_id,
+            "file_id" => $fileid,
             "url" => ((moodle_url::make_pluginfile_url($contextid,
                 $record->component,
                 $record->filearea,
                 $record->itemid,
                 $record->filepath,
-                $record->filename,
-                false
+                $record->filename
             )))
         );
     }
@@ -373,8 +357,7 @@ class quizaccess_exproctor_external extends external_api
      *
      * @return external_single_structure
      */
-    public static function send_webcam_shot_returns(): external_single_structure
-    {
+    public static function send_webcam_shot_returns(): external_single_structure {
         return new external_single_structure(array(
             'id' => new external_value(PARAM_TEXT,
                 'webcam shot id'
@@ -384,13 +367,13 @@ class quizaccess_exproctor_external extends external_api
     }
 
     /**
-     * This function store the screen shot
+     * This function store the screenshot
      *
      * @param $courseid
      * @param $attemptid
      * @param $quizid
      * @param $screenshot
-     * @param $bucketName
+     * @param $bucketname
      *
      * @return array
      * @throws dml_exception
@@ -401,16 +384,16 @@ class quizaccess_exproctor_external extends external_api
         $attemptid,
         $quizid,
         $screenshot,
-        $bucketName
+        $bucketname
     ): array {
-        // Validate the params
+        // Validate the params.
         $params = self::validate_parameters(self::send_screen_shot_parameters(),
             array(
                 'courseid' => $courseid,
                 'attemptid' => $attemptid,
                 'quizid' => $quizid,
                 'screenshot' => $screenshot,
-                'bucketName' => $bucketName,
+                'bucketName' => $bucketname,
                 'aiproctoring' => false,
             )
         );
@@ -425,9 +408,7 @@ class quizaccess_exproctor_external extends external_api
      *
      * @return external_function_parameters
      */
-    public static function send_screen_shot_parameters(
-    ): external_function_parameters
-    {
+    public static function send_screen_shot_parameters(): external_function_parameters {
         return new external_function_parameters(array(
             'courseid' => new external_value(PARAM_INT,
                 'course id',
@@ -462,8 +443,7 @@ class quizaccess_exproctor_external extends external_api
      *
      * @return external_single_structure
      */
-    public static function send_screen_shot_returns(): external_single_structure
-    {
+    public static function send_screen_shot_returns(): external_single_structure {
         return new external_single_structure(array(
             'id' => new external_value(PARAM_INT,
                 'screen shot id'

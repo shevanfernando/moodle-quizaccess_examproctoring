@@ -24,26 +24,24 @@
 
 namespace quizaccess_exproctor;
 
-global $CFG;
-
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/aws_sdk/aws-autoloader.php');
+global $CFG;
+
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/aws_sdk/aws-autoloader.php');
 
 use Aws\Rekognition\Exception\RekognitionException;
 use Aws\Rekognition\RekognitionClient;
 use Aws\Result;
 
-class aws_rekognition
-{
+class aws_rekognition {
     private $rekognitionclient;
     private $s3client;
 
-    public function __construct()
-    {
+    public function __construct() {
         $this->s3client = new aws_s3();
 
-        $data = $this->s3client->getData();
+        $data = $this->s3client->get_data();
 
         $this->rekognitionclient = new RekognitionClient([
             'version' => 'latest',
@@ -56,37 +54,29 @@ class aws_rekognition
     }
 
     /**
-     * @return mixed
-     */
-    public function getRekognitionCLient()
-    {
-        return $this->rekognitionclient;
-    }
-
-    /**
-     * @param $bucketName
-     * @param $imageData
-     * @param $fileName
+     * @param $bucketname
+     * @param $imagedata
+     * @param $filename
      *
      * @return array|Result|string
      */
-    public function storeEvidenceWhichFalseAiProctor(
-        $bucketName,
-        $imageData,
-        $fileName
+    public function store_evidence_which_false_ai_proctor(
+        $bucketname,
+        $imagedata,
+        $filename
     ) {
         try {
-            $isthereanyphone = $this->getObjectDetails($imageData);
-            $isfacialanalysisfalse = $this->getFaceDetails($imageData);
+            $isthereanyphone = $this->get_object_details($imagedata);
+            $isfacialanalysisfalse = $this->get_face_details($imagedata);
 
             if ($isfacialanalysisfalse || $isthereanyphone) {
-                return $this->s3client->saveImage($bucketName, $imageData,
-                    $fileName);
+                return $this->s3client->save_image($bucketname, $imagedata,
+                    $filename);
             }
 
             return array();
         } catch (RekognitionException $e) {
-            return 'Error: '.$e->getMessage();
+            return 'Error: ' . $e->getMessage();
         }
     }
 
@@ -97,10 +87,9 @@ class aws_rekognition
      *
      * @return bool
      */
-    public function getObjectDetails($image): bool
-    {
+    public function get_object_details($image): bool {
         try {
-            // Call DetectLabels
+            // Call DetectLabels.
             $result = $this->rekognitionclient->DetectLabels(array(
                 "Features" => array('GENERAL_LABELS'),
                 'Image' => array(
@@ -118,7 +107,7 @@ class aws_rekognition
 
             return false;
         } catch (RekognitionException $e) {
-            return "Error: ".$e->getMessage();
+            return "Error: " . $e->getMessage();
         }
     }
 
@@ -129,10 +118,9 @@ class aws_rekognition
      *
      * @return bool
      */
-    public function getFaceDetails($image): bool
-    {
+    public function get_face_details($image): bool {
         try {
-            // Call DetectFaces
+            // Call DetectFaces.
             $result = $this->rekognitionclient->DetectFaces(array(
                     'Image' => array(
                         'Bytes' => $image,
@@ -146,14 +134,15 @@ class aws_rekognition
             if (count($dataset) !== 1) {
                 return true;
             } else {
-                if ($dataset[0]["EyesOpen"]["Confidence"] < 90 || $dataset[0]["MouthOpen"]["Value"] || $dataset[0]["EyesOpen"]["Value"] === false) {
+                if ($dataset[0]["EyesOpen"]["Confidence"] < 90 || $dataset[0]["MouthOpen"]["Value"] ||
+                    $dataset[0]["EyesOpen"]["Value"] === false) {
                     return true;
                 }
             }
 
             return false;
         } catch (RekognitionException $e) {
-            return "Error: ".$e->getMessage();
+            return "Error: " . $e->getMessage();
         }
     }
 }

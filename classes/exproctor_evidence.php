@@ -24,17 +24,17 @@
 
 namespace quizaccess_exproctor;
 
+defined('MOODLE_INTERNAL') || die();
+
 global $CFG;
+
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
 
 use coding_exception;
 use core\persistent;
 use core_user;
 use dml_exception;
 use lang_string;
-
-defined('MOODLE_INTERNAL') || die();
-
-require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
 
 ini_set('max_execution_time', 0);
 
@@ -45,18 +45,16 @@ ini_set('max_execution_time', 0);
  * @copyright  2022 Shevan Thiranja Fernando <w.k.b.s.t.fernando@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class exproctor_evidence extends persistent
-{
+class exproctor_evidence extends persistent {
 
     /** Table name for the persistent. */
     const TABLE = 'quizaccess_exproctor_evid';
 
-
     /**
      * Get unique exproctor evidences records by quiz ID and course ID
      *
-     * @param  int  $quizid
-     * @param  int  $courseid
+     * @param int $quizid
+     * @param int $courseid
      *
      * @return array
      * @throws dml_exception
@@ -68,8 +66,10 @@ class exproctor_evidence extends persistent
         global $DB;
 
         $sql =
-            "SELECT DISTINCT string_agg(distinct e.evidencetype, ' | ') AS evidencetype, e.userid, u.firstname, u.lastname, u.email, max(e.timecreated) AS timecreated FROM {"
-            .static::TABLE."} AS e INNER JOIN {user} AS u ON u.id = e.userid WHERE e.quizid = :quizid AND e.courseid = :courseid GROUP BY e.userid, u.firstname, u.lastname, u.email";
+            "SELECT DISTINCT string_agg(distinct e.evidencetype, ' | ') AS evidencetype, e.userid, u.firstname, u.lastname," .
+            " u.email, max(e.timecreated) AS timecreated FROM {" . static::TABLE . "} e INNER JOIN {user} u ON " .
+            "u.id = e.userid WHERE e.quizid = :quizid AND e.courseid = :courseid GROUP BY " .
+            " e.userid, u.firstname, u.lastname, u.email";
 
         $persistents = [];
 
@@ -87,7 +87,7 @@ class exproctor_evidence extends persistent
     /**
      * Delete exproctor evidence record by ID
      *
-     * @param  int  $id  evidence table id
+     * @param int $id evidence table id
      *
      * @return bool
      * @throws dml_exception
@@ -95,8 +95,6 @@ class exproctor_evidence extends persistent
     public static function delete_evidence_by_id(
         int $id
     ): bool {
-        global $DB;
-
         $persistents = static::get_evidence_by_id($id);
 
         return static::delete_evidence($persistents, array("id" => $id));
@@ -105,7 +103,7 @@ class exproctor_evidence extends persistent
     /**
      * Get exproctor evidence record with file information by ID
      *
-     * @param  int  $id
+     * @param int $id
      *
      * @return array
      * @throws dml_exception
@@ -117,7 +115,7 @@ class exproctor_evidence extends persistent
 
         $sql =
             "SELECT e.id, e.url, e.fileid, e.s3filename, e.storagemethod, f.contextid, f.filearea, f.itemid FROM {"
-            .static::TABLE."} AS e LEFT JOIN {files} AS f ON f.id = e.fileid WHERE e.id = :id";
+            . static::TABLE . "} e LEFT JOIN {files} f ON f.id = e.fileid WHERE e.id = :id";
 
         $persistents = [];
 
@@ -137,9 +135,9 @@ class exproctor_evidence extends persistent
     /**
      * Delete evidence
      *
-     * @param  array  $persistents
-     * @param  array  $conditions
-     *
+     * @param array $persistents
+     * @param array $conditions
+     * @param bool $isdeleteall
      * @return bool
      * @throws dml_exception
      */
@@ -161,7 +159,7 @@ class exproctor_evidence extends persistent
             }
 
             if ($persistent->get("storagemethod") === "Local") {
-                // Delete the actual file
+                // Delete the actual file.
                 $fs = get_file_storage();
                 $fs->delete_area_files_select($persistent->get("contextid"),
                     "quizaccess_exproctor",
@@ -171,22 +169,20 @@ class exproctor_evidence extends persistent
                         "id" => $persistent->get("fileid")
                     ));
             } else {
-                // S3 Bucket record delete
+                // S3 Bucket record delete.
                 $s3 = new aws_s3();
-                $bucketName =
-                    $s3->getBucketNameUsingUrl($persistent->get("url"));
+                $bucketname = $s3->get_bucket_name_using_url($persistent->get("url"));
                 if ($isdeleteall) {
-                    $s3->deleteBucket($bucketName,
-                        $persistent->get("evidencetype"));
+                    $s3->delete_bucket($bucketname, $persistent->get("evidencetype"));
                 } else {
-                    $s3->deleteImage($bucketName,
-                        $persistent->get("s3filename").".png");
+                    $s3->delete_image($bucketname, $persistent->get("s3filename") . ".png");
                 }
             }
         }
 
         $deletewhere = array_key_exists("id", $conditions) ? "id = :id" :
-            'quizid = :quizid AND courseid = :courseid AND userid = :userid AND '.$DB->sql_compare_text('evidencetype').' = '.$DB->sql_compare_text(':evidencetype');
+            'quizid = :quizid AND courseid = :courseid AND userid = :userid AND ' . $DB->sql_compare_text('evidencetype') .
+            ' = ' . $DB->sql_compare_text(':evidencetype');
 
         return $DB->delete_records_select(static::TABLE, $deletewhere,
             $conditions);
@@ -195,10 +191,10 @@ class exproctor_evidence extends persistent
     /**
      * Delete exproctor evidence record by ID
      *
-     * @param  int     $quizid
-     * @param  int     $courseid
-     * @param  int     $userid
-     * @param  string  $evidencetype
+     * @param int $quizid
+     * @param int $courseid
+     * @param int $userid
+     * @param string $evidencetype
      *
      * @return bool
      * @throws dml_exception
@@ -209,8 +205,6 @@ class exproctor_evidence extends persistent
         int $userid,
         string $evidencetype
     ): bool {
-        global $DB;
-
         $persistents =
             static::get_evidences_by_quizid_and_courseid_and_userid($quizid,
                 $courseid, $userid);
@@ -225,9 +219,9 @@ class exproctor_evidence extends persistent
     /**
      * Get all exproctor evidences records by quiz ID, course ID and user ID
      *
-     * @param  int  $quizid
-     * @param  int  $courseid
-     * @param  int  $userid
+     * @param int $quizid
+     * @param int $courseid
+     * @param int $userid
      *
      * @return array
      * @throws dml_exception
@@ -240,8 +234,10 @@ class exproctor_evidence extends persistent
         global $DB;
 
         $sql =
-            "SELECT e.id, e.userid, u.firstname, u.lastname, e.evidencetype, e.url, e.fileid, e.s3filename, e.storagemethod, f.contextid, f.filearea, f.itemid FROM {"
-            .static::TABLE."} AS e INNER JOIN {user} AS u ON u.id = e.userid LEFT JOIN {files} AS f ON f.id = e.fileid WHERE e.quizid = :quizid AND e.courseid = :courseid AND e.userid = :userid ORDER BY e.id";
+            "SELECT e.id, e.userid, u.firstname, u.lastname, e.evidencetype, e.url, e.fileid, e.s3filename, " .
+            "e.storagemethod, f.contextid, f.filearea, f.itemid FROM {" . static::TABLE . "} e INNER JOIN {user} u ON " .
+            " u.id = e.userid LEFT JOIN {files} f ON f.id = e.fileid WHERE e.quizid = :quizid AND e.courseid = :courseid AND " .
+            "e.userid = :userid ORDER BY e.id";
 
         $persistents = [];
 
@@ -265,8 +261,7 @@ class exproctor_evidence extends persistent
      * @return array
      * @throws coding_exception
      */
-    protected static function define_properties(): array
-    {
+    protected static function define_properties(): array {
         return [
             'id' => [
                 'type' => PARAM_INT, 'null' => NULL_NOT_ALLOWED,
@@ -394,7 +389,7 @@ class exproctor_evidence extends persistent
     /**
      * Validate the user ID.
      *
-     * @param  int  $value  The value.
+     * @param int $value The value.
      *
      * @return true|lang_string
      * @throws coding_exception

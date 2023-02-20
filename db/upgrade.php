@@ -24,9 +24,9 @@
 
 /**
  * Exam proctoring module upgrade function.
+ *
  * @param string $oldversion the version we are upgrading from.
  */
-function xmldb_quizaccess_exproctor_upgrade($oldversion)
-{
+function xmldb_quizaccess_exproctor_upgrade(string $oldversion) {
     return true;
 }

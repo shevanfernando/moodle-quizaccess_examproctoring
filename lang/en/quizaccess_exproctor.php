@@ -109,3 +109,5 @@ $string['frozen_message'] =
 $string["invalid_data"] =
     '{$a->field} is invalid. {$a->field} must be {$a->data_type}.';
 $string["empty_data"] = '{$a->field} is empty.';
+$string["single_image_delete_confirm_msg"] = 'Are you sure you want to delete this evidences.';
+$string["all_image_delete_confirm_msg"] = 'Are you sure you want to delete all these evidences.';

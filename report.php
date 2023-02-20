@@ -22,24 +22,24 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die();
+
 global $CFG, $DB, $PAGE, $OUTPUT, $USER;
 
-require_once(__DIR__.'/../../../../config.php');
-require_once($CFG->dirroot.'/lib/tablelib.php');
+require_once(__DIR__ . '/../../../../config.php');
+require_once($CFG->dirroot . '/lib/tablelib.php');
 
-require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
-require_once($CFG->dirroot.'/mod/quiz/accessrule/exproctor/classes/exproctor_evidence.php');
-
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/exproctor_evidence.php');
 
 use quizaccess_exproctor\aws_s3;
 use quizaccess_exproctor\exproctor_evidence;
 
-abstract class LogAction
-{
-    const viewAll = 0;
-    const viewSingle = 1;
-    const deleteAll = 2;
-    const deleteSingle = 3;
+abstract class LogAction {
+    const VIEW_ALL = 0;
+    const VIEW_SINGLE = 1;
+    const DELETE_ALL = 2;
+    const DELETE_SINGLE = 3;
 }
 
 try {
@@ -78,73 +78,73 @@ try {
 
     $PAGE->set_url($url);
     $PAGE->set_pagelayout('course');
-    $PAGE->set_title($COURSE->shortname.': '.get_string('pluginname',
+    $PAGE->set_title($COURSE->shortname . ': ' . get_string('pluginname',
             'quizaccess_exproctor'));
-    $PAGE->set_heading($COURSE->fullname.': '.get_string('pluginname',
+    $PAGE->set_heading($COURSE->fullname . ': ' . get_string('pluginname',
             'quizaccess_exproctor'));
 
     $PAGE->navbar->add(get_string('pluginname', 'quizaccess_exproctor'), $url);
 
     echo $OUTPUT->header();
-    echo "<div id='main'><h2>".get_string('proctoring_reports',
-            'quizaccess_exproctor')." ".$quiz->name."</h2><div class='box generalbox m-b-1 adminerror alert alert-info p-y-1'>".get_string('proctoring_reports_desc',
-            'quizaccess_exproctor')."</div>";
+    echo "<div id='main'><h2>" . get_string('proctoring_reports', 'quizaccess_exproctor') . " " . $quiz->name .
+        "</h2><div class='box generalbox m-b-1 adminerror alert alert-info p-y-1'>" . get_string('proctoring_reports_desc',
+            'quizaccess_exproctor') . "</div>";
 
-    // Delete evidence
+    // Delete evidence.
     if (has_capability('quizaccess/exproctor:delete_evidence', $context,
         $USER->id)) {
         $conditions = array();
 
-        if ($logaction == LogAction::deleteSingle) {
+        if ($logaction == LogAction::DELETE_SINGLE) {
             exproctor_evidence::delete_evidence_by_id($reportid);
 
-            // Redirect to the report page
+            // Redirect to the report page.
             redirect(new moodle_url('/mod/quiz/accessrule/exproctor/report.php',
                 array(
                     'courseid' => $courseid,
                     'quizid' => $quizid,
                     'studentid' => $studentid,
                     'cmid' => $cmid,
-                    'logaction' => LogAction::viewSingle
-                )), ucwords($evidencetype)." image is successfully deleted!",
+                    'logaction' => LogAction::VIEW_SINGLE
+                )), ucwords($evidencetype) . " image is successfully deleted!",
                 -11);
         }
 
-        if ($logaction == LogAction::deleteAll) {
+        if ($logaction == LogAction::DELETE_ALL) {
             exproctor_evidence
                 ::delete_evidences_by_quizid_and_courseid_and_userid($quizid,
                     $courseid, $studentid, $evidencetype);
 
-            // Redirect to the report page
+            // Redirect to the report page.
             redirect(new moodle_url('/mod/quiz/accessrule/exproctor/report.php',
                 array(
                     'courseid' => $courseid,
                     'quizid' => $quizid,
                     'cmid' => $cmid
-                )), ucwords($evidencetype)." images are successfully deleted!",
+                )), ucwords($evidencetype) . " images are successfully deleted!",
                 -11);
         }
     } else {
-        echo "<div class='box generalbox m-b-1 adminerror alert alert-danger p-y-1'>".get_string('no_permission_to_delete_report',
-                'quizaccess_exproctor')."</div>";
+        echo "<div class='box generalbox m-b-1 adminerror alert alert-danger p-y-1'>" . get_string('no_permission_to_delete_report',
+                'quizaccess_exproctor') . "</div>";
     }
 
-    // View evidence
+    // View evidence.
     if (has_capability('quizaccess/exproctor:view_report', $context,
         $USER->id)) {
 
-        if ($logaction == LogAction::viewAll) {
+        if ($logaction == LogAction::VIEW_ALL) {
             $evidences = exproctor_evidence
                 ::get_unique_evidences_by_quizid_and_courseid($quizid,
                     $courseid);
 
             if (empty($evidences)) {
-                echo "<div class='box generalbox m-b-1 adminerror alert alert-primary p-y- 1'>".get_string('no_evidence_report',
-                        'quizaccess_exproctor')."</div>";
+                echo "<div class='box generalbox m-b-1 adminerror alert alert-primary p-y- 1'>" . get_string('no_evidence_report',
+                        'quizaccess_exproctor') . "</div>";
             } else {
                 // Print report.
                 $table =
-                    new flexible_table('exproctor - report - '.$COURSE->id.' - '.$cmid);
+                    new flexible_table('exproctor - report - ' . $COURSE->id . ' - ' . $cmid);
 
                 $table->define_columns(array(
                     'fullname', 'email', 'evidencetype', 'dateverified',
@@ -167,7 +167,8 @@ try {
                 foreach ($evidences as $info) {
                     $data = array();
                     $data[] =
-                        '<a href="'.$CFG->wwwroot.'/user/view.php?id='.$info->get("userid").'&course='.$courseid.'"target="_blank">'.$info->get("firstname").' '.$info->get("lastname").'</a>';
+                        '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $info->get("userid") . '&course=' . $courseid .
+                        '"target="_blank">' . $info->get("firstname") . ' ' . $info->get("lastname") . '</a>';
 
                     $data[] = $info->get("email");
 
@@ -176,9 +177,10 @@ try {
                     $data[] = date("Y/m/d H:m:s", $info->get("timecreated"));
 
                     $data[] =
-                        "<a href='?courseid=".$courseid."&quizid=".$quizid."&studentid=".$info->get("userid")."&cmid=".$cmid."&logaction=".LogAction::viewSingle."'>"
-                        .get_string("view_report",
-                            "quizaccess_exproctor")."</a>";
+                        "<a href='?courseid=" . $courseid . "&quizid=" . $quizid . "&studentid=" . $info->get("userid") . "&cmid=" .
+                        $cmid . "&logaction=" . LogAction::VIEW_SINGLE . "'>"
+                        . get_string("view_report",
+                            "quizaccess_exproctor") . "</a>";
 
                     $table->add_data($data);
                 }
@@ -187,13 +189,13 @@ try {
             }
         }
 
-        if ($logaction == LogAction::viewSingle) {
+        if ($logaction == LogAction::VIEW_SINGLE) {
             $evidences =
                 exproctor_evidence::get_evidences_by_quizid_and_courseid_and_userid($quizid,
                     $courseid, $studentid);
 
             $table =
-                new flexible_table('exproctor - report - pictures - '.$COURSE->id.' - '.$cmid);
+                new flexible_table('exproctor - report - pictures - ' . $COURSE->id . ' - ' . $cmid);
 
             $table->define_columns(array(
                 'std_name', 'evidencetype', 'imagecolumn',
@@ -224,7 +226,7 @@ try {
 
             $table->setup();
 
-            $s3Client = new aws_s3();
+            $s3client = new aws_s3();
 
             $firstname = "";
             $lastname = "";
@@ -238,14 +240,14 @@ try {
                 $lastname = $info->get("lastname");
 
                 if ($info->get("storagemethod") === 'AWS(S3)') {
-                    $url = $s3Client->getImage($url, $info->get("s3filename"));
+                    $url = $s3client->get_image($url, $info->get("s3filename"));
                 }
 
-                $picture =
-                    "<a class='quiz-img-div' onclick='return confirm(`Are you sure you want to delete this evidences`)' href='?courseid=".$courseid."&quizid=".$quizid."&studentid=".$studentid."&cmid=".$cmid."&reportid=".$info->get('id')."&logaction=".LogAction::deleteSingle."'>
-                    <img src=".$url." width='320px' alt='".$firstname."_"
-                    .$lastname."_".$info->get('id')."'/>
-                    </a>";
+                $picture = "<a class='quiz-img-div' onclick='return confirm(" .
+                    get_string("single_image_delete_confirm_msg", "quizaccess_exproctor") . ")' " .
+                    "href='?courseid=" . $courseid . "&quizid=" . $quizid . "&studentid=" . $studentid . "&cmid=" . $cmid .
+                    "&reportid=" . $info->get('id') . "&logaction=" . LogAction::DELETE_SINGLE . "'>" .
+                    "<img src=" . $url . " width='320px' alt='" . $firstname . "_" . $lastname . "_" . $info->get('id') . "'/></a>";
 
                 if ($info->get("evidencetype") === "webcam") {
                     $webcampicture .= $picture;
@@ -257,13 +259,18 @@ try {
             if (!empty($webcampicture)) {
                 $data = array();
                 $data[] =
-                    '<a href="'.$CFG->wwwroot.'/user/view.php?id='.$studentid.'&course='.$courseid.'"target="_blank" > '.$firstname.' '.$lastname.'</a>';
+                    '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $studentid . '&course=' . $courseid .
+                    '"target="_blank" > ' . $firstname . ' ' . $lastname . '</a>';
 
                 $data[] = "Webcam";
                 $data[] = $webcampicture;
 
                 $data[] =
-                    "<a onclick='return confirm(`Are you sure you want to delete all these evidences`)' class='text-danger'  href='?courseid=".$courseid."&quizid=".$quizid."&studentid=".$studentid."&cmid=".$cmid."&evidencetype=webcam&logaction=".LogAction::deleteAll."'>Delete all webcam evidences</a>";
+                    "<a onclick='return confirm(" .
+                    get_string("all_image_delete_confirm_msg", "quizaccess_exproctor") .
+                    ")' class='text-danger'  href='?courseid=" . $courseid . "&quizid=" . $quizid . "&studentid=" .
+                    $studentid . "&cmid=" . $cmid . "&evidencetype=webcam&logaction=" . LogAction::DELETE_ALL .
+                    "'>Delete all webcam evidences</a>";
 
                 $table->add_data($data);
             }
@@ -271,29 +278,29 @@ try {
             if (!empty($screenpicture)) {
                 $data = array();
                 $data[] =
-                    '<a href="'.$CFG->wwwroot.'/user/view.php?id='.$studentid.'&course='.$courseid.'"target="_blank" > '.$firstname.' '.$lastname.'</a>';
+                    '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $studentid . '&course=' . $courseid .
+                    '"target="_blank" > ' . $firstname . ' ' . $lastname . '</a>';
 
                 $data[] = "Screen";
                 $data[] = $screenpicture;
 
                 $data[] =
-                    "<a onclick='return confirm(`Are you sure you want to delete all these evidences`)' class='text-danger' href='?courseid=".$courseid."&quizid=".$quizid."&studentid=".$studentid."&cmid=".$cmid."&evidencetype=screen&logaction=".LogAction::deleteAll."'>Delete all screen evidences</a>";
+                    "<a onclick='return confirm(" .
+                    get_string("all_image_delete_confirm_msg", "quizaccess_exproctor") .
+                    ")' class='text-danger' href='?courseid=" . $courseid . "&quizid=" . $quizid . "&studentid=" . $studentid .
+                    "&cmid=" . $cmid . "&evidencetype=screen&logaction=" . LogAction::DELETE_ALL .
+                    "'>Delete all screen evidences</a>";
 
                 $table->add_data($data);
             }
-
             $table->finish_html();
         }
-
-        $icon_path =
-            new moodle_url('/mod/quiz/accessrule/exproctor/pix/bin.png');
-        echo "<style> .quiz-img-div{position:relative; display: inline-block;}.quiz-img-div:hover:after{content:'';position:absolute;left: 0px;top: 0px;bottom: 0px;width: 100%;background: url('$icon_path') center no-repeat;background-size: 25px;}.quiz-img-div:hover img{opacity: 0.1;} </style>";
     } else {
-        echo "<div class='box generalbox m-b-1 adminerror alert alert-danger p-y-1' > ".get_string('no_permission_report',
-                'quizaccess_exproctor')."</div > ";
+        echo "<div class='box generalbox m-b-1 adminerror alert alert-danger p-y-1' > " . get_string('no_permission_report',
+                'quizaccess_exproctor') . "</div > ";
     }
 
-    echo ' </div > ';
+    echo '</div>';
     echo $OUTPUT->footer();
 } catch (Exception $e) {
     var_dump($e);
