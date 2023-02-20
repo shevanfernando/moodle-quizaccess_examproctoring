@@ -22,13 +22,10 @@
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 global $CFG, $DB, $PAGE, $OUTPUT, $USER;
 
 require_once(__DIR__ . '/../../../../config.php');
 require_once($CFG->dirroot . '/lib/tablelib.php');
-
 require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
 require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/exproctor_evidence.php');
 
@@ -52,7 +49,7 @@ try {
     $logaction = (int) optional_param('logaction', '', PARAM_INT);
     $evidencetype = optional_param('evidencetype', '', PARAM_TEXT);
 
-    $context = context_module::instance($cmid, MUST_EXIST);
+    $context = context_module::instance($cmid);
 
     list ($course, $cm) = get_course_and_cm_from_cmid($cmid, 'quiz');
 
