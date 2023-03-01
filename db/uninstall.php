@@ -44,15 +44,24 @@ function xmldb_quizaccess_exproctor_uninstall(): bool {
         'shortname' => get_string('proctor:short_name', 'quizaccess_exproctor')
     ));
 
-    // Delete proctor role.
-    if (!delete_role($role->id)) {
-        // Delete failed.
-        throw new moodle_exception("cannotdeleterolewithid", "error", "", $role->id);
+    // Check role empty or not.
+    if (!empty($role)) {
+        // Delete proctor role.
+        if (!delete_role($role->id)) {
+            // Delete failed.
+            throw new moodle_exception("cannotdeleterolewithid", "error", "", $role->id);
+        }
     }
 
-    // Delete all the S3 bucket.
-    $s3client = new aws_s3();
-    $s3client->delete_buckets();
+    $record = $DB->get_record("config_plugins", array('plugin' => 'quizaccess_exproctor', 'value' => 'AWS(S3)'));
+
+    if (!empty($record)) {
+        // Delete all the S3 bucket.
+        $s3client = new aws_s3();
+        if (!$s3client->delete_buckets()) {
+            throw new moodle_exception("cannotdeletedir", "error", "", "S3 Buckets.");
+        }
+    }
 
     return true;
 }
