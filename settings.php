@@ -25,7 +25,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-global $ADMIN, $PAGE;
+global $ADMIN, $PAGE, $DB;
 
 if ($hassiteconfig) {
     get_string_manager()->reset_caches();
@@ -55,23 +55,33 @@ if ($hassiteconfig) {
                 'sa-east-1' => 'South America (São Paulo) - sa-east-1', 'us-gov-east-1' => 'AWS GovCloud (US-East) - us-gov-east-1',
                 'us-gov-west-1' => 'AWS GovCloud (US-West) - us-gov-west-1');
 
-            $settings->add(new admin_setting_configselect("quizaccess_exproctor/storagemethod",
-                get_string("storage_method", "quizaccess_exproctor"),
-                get_string("storage_method_description", "quizaccess_exproctor"), $choices["Local"], $choices));
+            $sql = "SELECT COUNT(id) AS record_counts FROM {quizaccess_exproctor_evid} WHERE storagemethod = :storagemethod";
 
-            $settings->add(new admin_setting_configselect("quizaccess_exproctor/awsregion",
-                get_string("aws_region", "quizaccess_exproctor"),
-                get_string("aws_region_description", "quizaccess_exproctor"),
-                $awsregions["us-east-2"], $awsregions));
+            $recordcounts = (int) $DB->get_record_sql($sql,
+                array("storagemethod" => $DB->sql_compare_text($choices["AWS(S3)"])))->record_counts;
 
-            $settings->add(new admin_setting_configtext("quizaccess_exproctor/awsaccesskey",
-                get_string("aws_access_key", "quizaccess_exproctor"),
-                get_string("aws_access_key_description", "quizaccess_exproctor"), null, PARAM_RAW_TRIMMED));
+            if ($recordcounts == 0) {
+                $settings->add(new admin_setting_configselect("quizaccess_exproctor/storagemethod",
+                    get_string("storage_method", "quizaccess_exproctor"),
+                    get_string("storage_method_description", "quizaccess_exproctor"), $choices["Local"], $choices));
 
-            $settings->add(new admin_setting_configtext("quizaccess_exproctor/awssecretkey",
-                get_string("aws_secret_key", "quizaccess_exproctor"),
-                get_string("aws_secret_key_description", "quizaccess_exproctor"), null, PARAM_RAW_TRIMMED));
-        } catch (coding_exception $e) {
+                $settings->add(new admin_setting_configselect("quizaccess_exproctor/awsregion",
+                    get_string("aws_region", "quizaccess_exproctor"),
+                    get_string("aws_region_description", "quizaccess_exproctor"),
+                    $awsregions["us-east-2"], $awsregions));
+
+                $settings->add(new admin_setting_configtext("quizaccess_exproctor/awsaccesskey",
+                    get_string("aws_access_key", "quizaccess_exproctor"),
+                    get_string("aws_access_key_description", "quizaccess_exproctor"), null, PARAM_RAW_TRIMMED));
+
+                $settings->add(new admin_setting_configtext("quizaccess_exproctor/awssecretkey",
+                    get_string("aws_secret_key", "quizaccess_exproctor"),
+                    get_string("aws_secret_key_description", "quizaccess_exproctor"), null, PARAM_RAW_TRIMMED));
+            } else {
+                $settings->add(new admin_setting_heading("quizaccess_exproctor/s3bucketdeletes",
+                    get_string("settings_freeze", "quizaccess_exproctor"), ""));
+            }
+        } catch (coding_exception | dml_exception $e) {
             return "Error: " . $e->getMessage();
         }
     }

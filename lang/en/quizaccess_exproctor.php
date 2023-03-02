@@ -111,3 +111,11 @@ $string["invalid_data"] =
 $string["empty_data"] = '{$a->field} is empty.';
 $string["single_image_delete_confirm_msg"] = 'Are you sure you want to delete this evidences.';
 $string["all_image_delete_confirm_msg"] = 'Are you sure you want to delete all these evidences.';
+$string["s3_bucket_delete"] =
+    '<a class="btn btn-primary" href="' . new moodle_url('/mod/quiz/accessrule/exproctor/s3bucketdelete.php', []) .
+    '">Delete S3 buckets</a>';
+$string['no_permission'] = 'You do not have proper permission to view this page';
+$string['s3_bucket_delete_warning'] =
+    'Deleting S3 bucket(s) affects the evidence record. If you delete s3 bucket(s) the evidence belonging to each bucket is deleted.';
+$string['settings_freeze'] =
+    '<div class="box generalbox p-y-1 m-b-1 adminerror alert-info" style="padding: 0 10px; border-radius: 10px">Cannot change storage method!</div>';
