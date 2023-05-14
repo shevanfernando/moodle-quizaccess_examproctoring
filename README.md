@@ -18,7 +18,7 @@ my final year project.
 
 The plugin can be also installed by putting the contents of this directory to
 
-    {your/moodle/dirroot}/mod/quiz/accessrule/examproctoring
+    {your/moodle/dirroot}/mod/quiz/accessrule/exproctor
 
 Afterwards, log in to your Moodle site as an admin and go to _Site administration >
 Notifications_ to complete the installation.
