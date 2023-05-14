@@ -22,8 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Serve the files.
  *
@@ -35,9 +33,9 @@ defined('MOODLE_INTERNAL') || die();
  * @param bool $forcedownload whether or not force download.
  * @param array $options additional options affecting the file serving.
  * @return bool false if the file not found, just send the file otherwise and do not return anything.
+ * @throws coding_exception
  */
-function quizaccess_exproctor_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = array())
-{
+function quizaccess_exproctor_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = array()) {
 
     $itemid = array_shift($args);
     $filename = array_pop($args);

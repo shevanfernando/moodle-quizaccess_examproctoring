@@ -17,475 +17,290 @@
 /**
  * Report for the quizaccess_exproctor plugin.
  *
- * @package    ${PLUGINNAME}
- * @copyright  2022 Shevan Thiranja Fernando <w.k.b.s.t.fernando@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package     quizaccess_exproctor
+ * @copyright   2022 Shevan Thiranja Fernando <w.k.b.s.t.fernando@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+require_once(__DIR__ . '/../../../../config.php');
 
 global $CFG, $DB, $PAGE, $OUTPUT, $USER;
 
-require_once(__DIR__ . '/../../../../config.php');
 require_once($CFG->dirroot . '/lib/tablelib.php');
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/aws_s3.php');
+require_once($CFG->dirroot . '/mod/quiz/accessrule/exproctor/classes/exproctor_evidence.php');
 
-// Get vars.
-$courseid = required_param('courseid', PARAM_INT);
-$cmid = required_param('cmid', PARAM_INT);
-$quizid = required_param('quizid', PARAM_INT);
-$studentid = optional_param('studentid', '', PARAM_INT);
-$reportid = optional_param('reportid', '', PARAM_INT);
-$log_action = optional_param('log_action', '', PARAM_TEXT);
+use quizaccess_exproctor\aws_s3;
+use quizaccess_exproctor\exproctor_evidence;
 
-$context = context_module::instance($cmid, MUST_EXIST);
-
-list ($course, $cm) = get_course_and_cm_from_cmid($cmid, 'quiz');
-
-require_login($course, true, $cm);
-
-
-$COURSE = $DB->get_record('course', array('id' => $courseid));
-$quiz = $DB->get_record('quiz', array('id' => $cm->instance));
-
-$proctoring = $DB->get_record('quizaccess_exproctor', array('quizid' => $quiz->id));
-
-$webcamproctoringrequired = (bool)$proctoring->webcamproctoringrequired;
-$screenproctoringrequired = (bool)$proctoring->screenproctoringrequired;
-
-$params = array(
-    'courseid' => $courseid,
-    'userid' => $studentid,
-    'cmid' => $cmid
-);
-
-if ($studentid) {
-    $params['studentid'] = $studentid;
-}
-if ($reportid) {
-    $params['reportid'] = $reportid;
+abstract class LogAction {
+    const VIEW_ALL = 0;
+    const VIEW_SINGLE = 1;
+    const DELETE_ALL = 2;
+    const DELETE_SINGLE = 3;
 }
 
-$url = new moodle_url(
-    '/mod/quiz/accessrule/exproctor/report.php',
-    $params
-);
+try {
+    // Get vars.
+    $courseid = (int) required_param('courseid', PARAM_INT);
+    $cmid = (int) required_param('cmid', PARAM_INT);
+    $quizid = (int) required_param('quizid', PARAM_INT);
+    $studentid = (int) optional_param('studentid', '', PARAM_INT);
+    $reportid = (int) optional_param('reportid', '', PARAM_INT);
+    $logaction = (int) optional_param('logaction', '', PARAM_INT);
+    $evidencetype = optional_param('evidencetype', '', PARAM_TEXT);
 
-//$form = new quizaccess_exproctor_delete_form($url);
+    $context = context_module::instance($cmid);
 
-get_string_manager()->reset_caches();
+    list ($course, $cm) = get_course_and_cm_from_cmid($cmid, 'quiz');
 
-$PAGE->set_url($url);
-$PAGE->set_pagelayout('course');
-$PAGE->set_title($COURSE->shortname . ': ' . get_string('pluginname', 'quizaccess_exproctor'));
-$PAGE->set_heading($COURSE->fullname . ': ' . get_string('pluginname', 'quizaccess_exproctor'));
+    require_login($course, true, $cm);
 
-$PAGE->navbar->add(get_string('quizaccess_exproctor', 'quizaccess_exproctor'), $url);
+    $COURSE = $DB->get_record('course', array('id' => $courseid));
+    $quiz = $DB->get_record('quiz', array('id' => $cm->instance));
 
-echo $OUTPUT->header();
+    $params =
+        array('courseid' => $courseid, 'quizid' => $quizid, 'cmid' => $cmid);
 
-echo '<div id="main">
-<h2>' . get_string('proctoring_reports', 'quizaccess_exproctor') . '' . $quiz->name . '</h2>
-<div class="box generalbox m-b-1 adminerror alert alert-info p-y-1">'
-    . get_string('proctoring_reports_desc', 'quizaccess_exproctor') . '</div>
-';
-
-// Delete webcam shots
-if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
-    && $studentid != null
-    && $quizid != null
-    && $courseid != null
-    && $reportid != null
-    && !empty($log_action)
-) {
-    // Delete images
-    // Remove logs from quizaccess_exproctor_wb_logs
-    $DB->delete_records('quizaccess_exproctor_wb_logs', array('courseid' => $courseid, 'quizid' => $quizid, 'userid' => $studentid));
-
-    $filesql = 'SELECT * FROM {files} WHERE userid IN (' . $studentid . ') AND contextid IN (' . $context->id . ') AND component = \'quizaccess_exproctor\' AND filearea = \'webcam_images\'';
-    $usersfile = $DB->get_records_sql($filesql);
-
-    $fs = get_file_storage();
-    foreach ($usersfile as $file):
-        // Delete the actual file
-        $fs->delete_area_files($context->id, 'quizaccess_exproctor', 'picture', $file->id);
-    endforeach;
-    $url2 = new moodle_url(
-        '/mod/quiz/accessrule/exproctor/report.php',
-        array(
-            'courseid' => $courseid,
-            'quizid' => $quizid,
-            'cmid' => $cmid
-        )
-    );
-    redirect($url2, 'Images deleted!', -11);
-}
-
-// Delete screen shots
-if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
-    && $studentid != null
-    && $quizid != null
-    && $courseid != null
-    && $reportid != null
-    && !empty($log_action)
-) {
-    // Delete images
-    // Remove logs from quizaccess_exproctor_sc_logs
-    $DB->delete_records('quizaccess_exproctor_sc_logs', array('courseid' => $courseid, 'quizid' => $quizid, 'userid' => $studentid));
-
-    $filesql = 'SELECT * FROM {files} WHERE userid IN (' . $studentid . ') AND contextid IN (' . $context->id . ') AND component = \'quizaccess_exproctor\' AND filearea = \'screen_shots\'';
-    $usersfile = $DB->get_records_sql($filesql);
-
-    $fs = get_file_storage();
-    foreach ($usersfile as $file):
-        // Delete the actual file
-        $fs->delete_area_files($context->id, 'quizaccess_exproctor', 'picture', $file->id);
-    endforeach;
-
-    $url2 = new moodle_url(
-        '/mod/quiz/accessrule/exproctor/report.php',
-        array(
-            'courseid' => $courseid,
-            'quizid' => $quizid,
-            'cmid' => $cmid
-        )
-    );
-
-    redirect($url2, 'Images deleted!', -11);
-}
-
-# Delete single webcam picture
-if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
-    && $log_action == "deletesinglewebcampic"
-) {
-    $logsql = "SELECT * FROM {quizaccess_exproctor_wb_logs} WHERE id= $reportid";
-    $records = $DB->get_records_sql($logsql);
-
-    if (count($records) > 0) {
-        $file_id = 0;
-        $tempcontextid = 0;
-
-        foreach ($records as $record) {
-            $file_id = $record->fileid;
-        }
-
-        $filesql = "SELECT * FROM {files} WHERE id=$file_id";
-        $usersfile = $DB->get_records_sql($filesql);
-
-        foreach ($usersfile as $tempfile) {
-            $tempcontextid = $tempfile->contextid;
-        }
-
-        // Delete Image
-        // Delete the file record
-        $DB->delete_records('quizaccess_exproctor_wb_logs', array('id' => $reportid));
-
-        // Delete the actual file
-        $fs = get_file_storage();
-        $fs->delete_area_files($tempcontextid, 'quizaccess_exproctor', 'webcam_images', $file_id);
+    if ($studentid) {
+        $params['studentid'] = $studentid;
     }
-}
 
-# Delete single screen shot
-if (has_capability('quizaccess/exproctor:delete_evidence', $context, $USER->id)
-    && $log_action == "deletesinglescreenshot"
-) {
-    $logsql = "SELECT * FROM {quizaccess_exproctor_sc_logs} WHERE id= $reportid";
-    $records = $DB->get_records_sql($logsql);
-
-    if (count($records) > 0) {
-        $file_id = 0;
-        $tempcontextid = 0;
-
-        foreach ($records as $record) {
-            $file_id = $record->fileid;
-        }
-
-        $filesql = "SELECT * FROM {files} WHERE id=$file_id";
-        $usersfile = $DB->get_records_sql($filesql);
-
-        foreach ($usersfile as $tempfile) {
-            $tempcontextid = $tempfile->contextid;
-        }
-
-        // Delete Image
-        /// Delete the file record
-        $DB->delete_records('quizaccess_exproctor_sc_logs', array('id' => $reportid));
-
-        // Delete the actual file
-        $fs = get_file_storage();
-        $fs->delete_area_files($tempcontextid, 'quizaccess_exproctor', 'screen_shots', $file_id);
+    if ($logaction) {
+        $params['logaction'] = $logaction;
     }
-}
 
-# View webcam shot
-if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $cmid != null && $courseid != null) {
-    if ($webcamproctoringrequired) {
-        // Check if report if for some user.
-        if ($studentid != null && $quizid != null && $courseid != null && $reportid != null) {
-            // Report for this user.
-            $sql = "SELECT e.id as reportid, e.userid as studentid, e.webcamshot as webcamshot, e.attemptid as attemptid,
-         e.timemodified as timemodified, u.firstname as firstname, u.lastname as lastname, u.email as email
-         from  {quizaccess_exproctor_wb_logs} e INNER JOIN {user} u  ON u.id = e.userid
-         WHERE e.courseid = '$courseid' AND e.quizid = '$quizid' AND u.id = '$studentid' AND e.id = '$reportid'";
+    get_string_manager()->reset_caches();
+
+    $url = new moodle_url('/mod/quiz/accessrule/exproctor/report.php', $params);
+
+    $PAGE->set_url($url);
+    $PAGE->set_pagelayout('course');
+    $PAGE->set_title($COURSE->shortname . ': ' . get_string('pluginname',
+            'quizaccess_exproctor'));
+    $PAGE->set_heading($COURSE->fullname . ': ' . get_string('pluginname',
+            'quizaccess_exproctor'));
+
+    $PAGE->navbar->add(get_string('pluginname', 'quizaccess_exproctor'), $url);
+
+    echo $OUTPUT->header();
+    echo "<div id='main'><h2>" . get_string('proctoring_reports', 'quizaccess_exproctor') . " " . $quiz->name .
+        "</h2><div class='box generalbox m-b-1 adminerror alert alert-info p-y-1'>" . get_string('proctoring_reports_desc',
+            'quizaccess_exproctor') . "</div>";
+
+    // Delete evidence.
+    if (has_capability('quizaccess/exproctor:delete_evidence', $context,
+        $USER->id)) {
+        $conditions = array();
+
+        if ($logaction == LogAction::DELETE_SINGLE) {
+            exproctor_evidence::delete_evidence_by_id($reportid);
+
+            // Redirect to the report page.
+            redirect(new moodle_url('/mod/quiz/accessrule/exproctor/report.php',
+                array(
+                    'courseid' => $courseid,
+                    'quizid' => $quizid,
+                    'studentid' => $studentid,
+                    'cmid' => $cmid,
+                    'logaction' => LogAction::VIEW_SINGLE
+                )), ucwords($evidencetype) . " image is successfully deleted!",
+                -11);
         }
 
-        if ($studentid == null && $quizid != null && $courseid != null) {
-            // Report for all users.
-            $sql = "SELECT  DISTINCT e.userid as studentid, u.firstname as firstname, u.lastname as lastname,
-                u.email as email, max(e.webcamshot) as webcamshot,max(e.id) as reportid, max(e.attemptid) as attemptid,
-                max(e.timemodified) as timemodified
-                from  {quizaccess_exproctor_wb_logs} e INNER JOIN {user} u ON u.id = e.userid
-                WHERE e.courseid = '$courseid' AND e.quizid = '$quizid'
-                group by e.userid, u.firstname, u.lastname, u.email";
+        if ($logaction == LogAction::DELETE_ALL) {
+            exproctor_evidence
+                ::delete_evidences_by_quizid_and_courseid_and_userid($quizid,
+                    $courseid, $studentid, $evidencetype);
+
+            // Redirect to the report page.
+            redirect(new moodle_url('/mod/quiz/accessrule/exproctor/report.php',
+                array(
+                    'courseid' => $courseid,
+                    'quizid' => $quizid,
+                    'cmid' => $cmid
+                )), ucwords($evidencetype) . " images are successfully deleted!",
+                -11);
         }
+    } else {
+        echo "<div class='box generalbox m-b-1 adminerror alert alert-danger p-y-1'>" . get_string('no_permission_to_delete_report',
+                'quizaccess_exproctor') . "</div>";
+    }
 
-        // Print report.
-        $table = new flexible_table('exproctor-report-' . $COURSE->id . '-' . $cmid);
+    // View evidence.
+    if (has_capability('quizaccess/exproctor:view_report', $context,
+        $USER->id)) {
 
-        $table->define_columns(array('fullname', 'email', 'dateverified', 'actions'));
-        $table->define_headers(
-            array(
-                get_string('user'),
-                get_string('email'),
-                get_string('dateverified', 'quizaccess_exproctor'),
-                get_string('actions', 'quizaccess_exproctor')
-            )
-        );
+        if ($logaction == LogAction::VIEW_ALL) {
+            $evidences = exproctor_evidence
+                ::get_unique_evidences_by_quizid_and_courseid($quizid,
+                    $courseid);
 
-        $table->define_baseurl($url);
+            if (empty($evidences)) {
+                echo "<div class='box generalbox m-b-1 adminerror alert alert-primary p-y- 1'>" . get_string('no_evidence_report',
+                        'quizaccess_exproctor') . "</div>";
+            } else {
+                // Print report.
+                $table =
+                    new flexible_table('exproctor - report - ' . $COURSE->id . ' - ' . $cmid);
 
-        $table->set_attribute('cellpadding', '5');
-        $table->set_attribute('class', 'generaltable generalbox reporttable');
-        $table->setup();
+                $table->define_columns(array(
+                    'fullname', 'email', 'evidencetype', 'dateverified',
+                    'actions'
+                ));
 
-        // Prepare data.
-        $sqlexecuted = $DB->get_recordset_sql($sql);
+                $table->define_headers(array(
+                    get_string('user'), get_string('email'),
+                    get_string('evidencetype', 'quizaccess_exproctor'),
+                    get_string('dateverified', 'quizaccess_exproctor'),
+                    get_string('actions', 'quizaccess_exproctor')
+                ));
 
-        foreach ($sqlexecuted as $info) {
-            $data = array();
-            $data[] = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $info->studentid .
-                '&course=' . $courseid . '" target="_blank">' . $info->firstname . ' ' . $info->lastname . '</a>';
+                $table->define_baseurl($url);
 
-            $data[] = $info->email;
+                $table->set_attribute('class',
+                    'generaltable generalbox reporttable');
+                $table->setup();
 
-            $data[] = date("Y/M/d H:m:s", $info->timemodified);
+                foreach ($evidences as $info) {
+                    $data = array();
+                    $data[] =
+                        '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $info->get("userid") . '&course=' . $courseid .
+                        '"target="_blank">' . $info->get("firstname") . ' ' . $info->get("lastname") . '</a>';
 
-            if ($webcamproctoringrequired) {
-                $data[] = '<a href="?courseid=' . $courseid .
-                    '&quizid=' . $quizid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
-                    get_string('webcam_report', 'quizaccess_exproctor') . '</a>';
-            }
+                    $data[] = $info->get("email");
 
-            $table->add_data($data);
-        }
+                    $data[] = $info->get("evidencetype");
 
-        if (!$screenproctoringrequired) {
-            $table->finish_html();
-        }
+                    $data[] = date("Y/m/d H:m:s", $info->get("timecreated"));
 
-        // Print image results for webcam.
-        if ($studentid != null && $quizid != null && $courseid != null && $reportid != null) {
+                    $data[] =
+                        "<a href='?courseid=" . $courseid . "&quizid=" . $quizid . "&studentid=" . $info->get("userid") . "&cmid=" .
+                        $cmid . "&logaction=" . LogAction::VIEW_SINGLE . "'>"
+                        . get_string("view_report",
+                            "quizaccess_exproctor") . "</a>";
 
-            $data = array();
-            $sql = "SELECT e.id as reportid, e.userid as studentid, e.webcamshot as webcamshot, e.attemptid as attemptid,
-        e.timemodified as timemodified, u.firstname as firstname, u.lastname as lastname, u.email as email
-        from {quizaccess_exproctor_wb_logs} e INNER JOIN {user} u  ON u.id = e.userid
-        WHERE e.courseid = '$courseid' AND e.quizid = '$quizid' AND u.id = '$studentid'";
-
-            $sqlexecuted = $DB->get_recordset_sql($sql);
-
-            $get_records_count = $DB->get_records('quizaccess_exproctor_wb_logs', array('quizid' => $quizid, 'courseid' => $courseid));
-
-            echo '<hr>';
-
-            if (count($get_records_count) > 0) {
-
-                echo '<h3>' . get_string('pictures_webcam_used_report', 'quizaccess_exproctor') . '</h3>';
-
-                $tablepictures = new flexible_table('exproctor-report-pictures' . $COURSE->id . '-' . $cmid);
-
-                $tablepictures->define_columns(
-                    array(get_string('std_name', 'quizaccess_exproctor'),
-                        get_string('webcam_picture', 'quizaccess_exproctor'),
-                        'Actions'
-                    )
-                );
-                $tablepictures->define_headers(
-                    array(get_string('std_name', 'quizaccess_exproctor'),
-                        get_string('webcam_picture', 'quizaccess_exproctor'),
-                        get_string('actions', 'quizaccess_exproctor')
-                    )
-                );
-                $tablepictures->define_baseurl($url);
-
-                $tablepictures->set_attribute('cellpadding', '2');
-                $tablepictures->set_attribute('class', 'generaltable generalbox reporttable');
-
-                $tablepictures->setup();
-                $pictures = '';
-
-                foreach ($sqlexecuted as $info) {
-                    $pictures .= $info->webcamshot
-                        ? '<a class="quiz-img-div" onclick="return confirm(`Are you sure want to delete this webcam picture?`)" href="?courseid=' . $courseid . '&quizid=' . $quizid . '&cmid=' . $cmid . '&reportid=' . $info->reportid . '&log_action=deletesinglewebcampic">
-                    <img title="Click to Delete" width="320" src="' . $info->webcamshot . '" alt="' . $info->firstname . ' ' . $info->lastname . '" />
-                   </a>'
-                        : '';
+                    $table->add_data($data);
                 }
 
-                $datapictures = array(
-                    $info->firstname . ' ' . $info->lastname . '<br/>' . $info->email,
-                    $pictures,
-                    '<a onclick="return confirm(`Are you sure want to delete this webcam picture?`)" class="text-danger" href="?courseid=' . $courseid .
-                    '&quizid=' . $quizid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '&log_action=delete">Delete ALL Images</a>',
-                );
-                $tablepictures->add_data($datapictures);
-                $tablepictures->finish_html();
-            } else {
-                echo '<h3>' . get_string('pictures_webcam_no_report', 'quizaccess_exproctor') . '</h3>';
+                $table->finish_html();
             }
         }
-    }
-} else {
-    // User has no permissions to view this page.
-    echo '<div class="box generalbox m-b-1 adminerror alert alert-danger p-y-1">' .
-        get_string('no_permission_report', 'quizaccess_exproctor') . '</div>';
-}
 
-# View screen shot
-if (has_capability('quizaccess/exproctor:view_report', $context, $USER->id) && $cmid != null && $courseid != null) {
-    if ($screenproctoringrequired) {
-        // Check if report if for some user.
-        if ($studentid != null && $quizid != null && $courseid != null && $reportid != null) {
-            // Report for this user.
-            $sql = "SELECT e.id as reportid, e.userid as studentid, e.screenshot as screenshot, e.attemptid as attemptid,
-         e.timemodified as timemodified, u.firstname as firstname, u.lastname as lastname, u.email as email
-         from  {quizaccess_exproctor_sc_logs} e INNER JOIN {user} u  ON u.id = e.userid
-         WHERE e.courseid = '$courseid' AND e.quizid = '$quizid' AND u.id = '$studentid' AND e.id = '$reportid'";
-        }
+        if ($logaction == LogAction::VIEW_SINGLE) {
+            $evidences =
+                exproctor_evidence::get_evidences_by_quizid_and_courseid_and_userid($quizid,
+                    $courseid, $studentid);
 
-        if ($studentid == null && $quizid != null && $courseid != null) {
-            // Report for all users.
-            $sql = "SELECT  DISTINCT e.userid as studentid, u.firstname as firstname, u.lastname as lastname,
-                u.email as email, max(e.screenshot) as screenshot,max(e.id) as reportid, max(e.attemptid) as attemptid,
-                max(e.timemodified) as timemodified
-                from  {quizaccess_exproctor_sc_logs} e INNER JOIN {user} u ON u.id = e.userid
-                WHERE e.courseid = '$courseid' AND e.quizid = '$quizid'
-                group by e.userid, u.firstname, u.lastname, u.email";
-        }
+            $table =
+                new flexible_table('exproctor - report - pictures - ' . $COURSE->id . ' - ' . $cmid);
 
-        // Print report.
-        $table = new flexible_table('exproctor-report-' . $COURSE->id . '-' . $cmid);
+            $table->define_columns(array(
+                'std_name', 'evidencetype', 'imagecolumn',
+                'actions'
+            ));
 
-        $table->define_columns(array('fullname', 'email', 'dateverified', 'actions'));
-        $table->define_headers(
-            array(
-                get_string('user'),
-                get_string('email'),
-                get_string('dateverified', 'quizaccess_exproctor'),
+            $table->define_headers(array(
+                get_string('std_name', 'quizaccess_exproctor'),
+                get_string('evidencetype', 'quizaccess_exproctor'),
+                get_string('imagecolumn', 'quizaccess_exproctor'),
                 get_string('actions', 'quizaccess_exproctor')
-            )
-        );
+            ));
 
-        $table->define_baseurl($url);
+            $table->define_baseurl($url);
 
-        $table->set_attribute('cellpadding', '5');
-        $table->set_attribute('class', 'generaltable generalbox reporttable');
-        $table->setup();
+            $table->set_attribute('class',
+                'generaltable generalbox reporttable');
+            $table->column_style('std_name', 'text-align', 'center');
+            $table->column_style('std_name', 'width', '1 % ');
+            $table->column_style('std_name', 'white-space', 'nowrap');
+            $table->column_style('evidencetype', 'text-align', 'center');
+            $table->column_style('evidencetype', 'width', '1 % ');
+            $table->column_style('evidencetype', 'white-space', 'nowrap');
+            $table->column_style('imagecolumn', 'text-align', 'center');
+            $table->column_style('actions', 'text-align', 'center');
+            $table->column_style('actions', 'width', '1 % ');
+            $table->column_style('actions', 'white-space', 'nowrap');
 
-        // Prepare data.
-        $sqlexecuted = $DB->get_recordset_sql($sql);
+            $table->setup();
 
-        foreach ($sqlexecuted as $info) {
-            $data = array();
-            $data[] = '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $info->studentid .
-                '&course=' . $courseid . '" target="_blank">' . $info->firstname . ' ' . $info->lastname . '</a>';
+            $s3client = new aws_s3();
 
-            $data[] = $info->email;
+            $firstname = "";
+            $lastname = "";
 
-            $data[] = date("Y/M/d H:m:s", $info->timemodified);
+            $webcampicture = "";
+            $screenpicture = "";
 
-            if ($screenproctoringrequired) {
-                $data[] = '<a href="?courseid=' . $courseid .
-                    '&quizid=' . $quizid . '&cmid=' . $cmid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '">' .
-                    get_string('screen_report', 'quizaccess_exproctor') . '</a>';
-            }
+            foreach ($evidences as $info) {
+                $url = $info->get("url");
+                $firstname = $info->get("firstname");
+                $lastname = $info->get("lastname");
 
-            $table->add_data($data);
-        }
-
-        if (!$webcamproctoringrequired) {
-            $table->finish_html();
-        }
-
-        // Print image results for screen shots.
-
-        if ($studentid != null && $cmid != null && $courseid != null && $reportid != null) {
-
-            $data = array();
-            $sql = "SELECT e.id as reportid, e.userid as studentid, e.screenshot as screenshot, e.attemptid as attemptid,
-        e.timemodified as timemodified, u.firstname as firstname, u.lastname as lastname, u.email as email
-        from {quizaccess_exproctor_sc_logs} e INNER JOIN {user} u  ON u.id = e.userid
-        WHERE e.courseid = '$courseid' AND e.quizid = '$quizid' AND u.id = '$studentid'";
-
-            $sqlexecuted = $DB->get_recordset_sql($sql);
-
-            $get_records_count = $DB->get_records('quizaccess_exproctor_sc_logs', array('quizid' => $quizid, 'courseid' => $courseid));
-
-
-            echo '<hr>';
-
-            if (count($get_records_count) > 0) {
-                echo '<h3>' . get_string('pictures_screen_used_report', 'quizaccess_exproctor') . '</h3>';
-
-                $tablepictures = new flexible_table('exproctor-report-pictures' . $COURSE->id . '-' . $quizid);
-
-                $tablepictures->define_columns(
-                    array(get_string('std_name', 'quizaccess_exproctor'),
-                        get_string('screen_picture', 'quizaccess_exproctor'),
-                        'Actions'
-                    )
-                );
-                $tablepictures->define_headers(
-                    array(get_string('std_name', 'quizaccess_exproctor'),
-                        get_string('screen_picture', 'quizaccess_exproctor'),
-                        get_string('actions', 'quizaccess_exproctor')
-                    )
-                );
-                $tablepictures->define_baseurl($url);
-
-                $tablepictures->set_attribute('cellpadding', '2');
-                $tablepictures->set_attribute('class', 'generaltable generalbox reporttable');
-
-                $tablepictures->setup();
-                $pictures = '';
-
-                foreach ($sqlexecuted as $info) {
-                    $pictures .= $info->screenshot
-                        ? '<a class="quiz-img-div" onclick="return confirm(`Are you sure want to delete this screen shot?`)" href="?courseid=' . $courseid . '&quizid=' . $quizid . '&cmid=' . $cmid . '&reportid=' . $info->reportid . '&log_action=deletesinglescreenshot">
-                    <img title="Click to Delete" width="320px" src="' . $info->screenshot . '" alt="' . $info->firstname . ' ' . $info->lastname . '" />
-                   </a>'
-                        : '';
+                if ($info->get("storagemethod") === 'AWS(S3)') {
+                    $url = $s3client->get_image($url, $info->get("s3filename"));
                 }
 
-                $datapictures = array(
-                    $info->firstname . ' ' . $info->lastname . '<br/>' . $info->email,
-                    $pictures,
-                    '<a onclick="return confirm(`Are you sure want to delete this screen shot?`)" class="text-danger" href="?courseid=' . $courseid .
-                    '&quizid=' . $quizid . '&studentid=' . $info->studentid . '&reportid=' . $info->reportid . '&log_action=delete">Delete ALL Images</a>',
-                );
-                $tablepictures->add_data($datapictures);
-                $tablepictures->finish_html();
-            } else {
-                echo '<h3>' . get_string('pictures_screen_no_report', 'quizaccess_exproctor') . '</h3>';
+                $picture = "<a class='quiz-img-div' onclick='return confirm(" .
+                    get_string("single_image_delete_confirm_msg", "quizaccess_exproctor") . ")' " .
+                    "href='?courseid=" . $courseid . "&quizid=" . $quizid . "&studentid=" . $studentid . "&cmid=" . $cmid .
+                    "&reportid=" . $info->get('id') . "&logaction=" . LogAction::DELETE_SINGLE . "'>" .
+                    "<img src=" . $url . " width='320px' alt='" . $firstname . "_" . $lastname . "_" . $info->get('id') . "'/></a>";
+
+                if ($info->get("evidencetype") === "webcam") {
+                    $webcampicture .= $picture;
+                } else {
+                    $screenpicture .= $picture;
+                }
             }
+
+            if (!empty($webcampicture)) {
+                $data = array();
+                $data[] =
+                    '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $studentid . '&course=' . $courseid .
+                    '"target="_blank" > ' . $firstname . ' ' . $lastname . '</a>';
+
+                $data[] = "Webcam";
+                $data[] = $webcampicture;
+
+                $data[] =
+                    "<a onclick='return confirm(" .
+                    get_string("all_image_delete_confirm_msg", "quizaccess_exproctor") .
+                    ")' class='text-danger'  href='?courseid=" . $courseid . "&quizid=" . $quizid . "&studentid=" .
+                    $studentid . "&cmid=" . $cmid . "&evidencetype=webcam&logaction=" . LogAction::DELETE_ALL .
+                    "'>Delete all webcam evidences</a>";
+
+                $table->add_data($data);
+            }
+
+            if (!empty($screenpicture)) {
+                $data = array();
+                $data[] =
+                    '<a href="' . $CFG->wwwroot . '/user/view.php?id=' . $studentid . '&course=' . $courseid .
+                    '"target="_blank" > ' . $firstname . ' ' . $lastname . '</a>';
+
+                $data[] = "Screen";
+                $data[] = $screenpicture;
+
+                $data[] =
+                    "<a onclick='return confirm(" .
+                    get_string("all_image_delete_confirm_msg", "quizaccess_exproctor") .
+                    ")' class='text-danger' href='?courseid=" . $courseid . "&quizid=" . $quizid . "&studentid=" . $studentid .
+                    "&cmid=" . $cmid . "&evidencetype=screen&logaction=" . LogAction::DELETE_ALL .
+                    "'>Delete all screen evidences</a>";
+
+                $table->add_data($data);
+            }
+            $table->finish_html();
         }
+    } else {
+        echo "<div class='box generalbox m-b-1 adminerror alert alert-danger p-y-1' > " . get_string('no_permission_report',
+                'quizaccess_exproctor') . "</div > ";
     }
-} else {
-    // User has no permissions to view this page.
-    echo '<div class="box generalbox m-b-1 adminerror alert alert-danger p-y-1">' .
-        get_string('no_permission_report', 'quizaccess_exproctor') . '</div>';
+
+    echo '</div>';
+    echo $OUTPUT->footer();
+} catch (Exception $e) {
+    var_dump($e);
+    die();
 }
-
-echo '</div>';
-echo $OUTPUT->footer();
-
-$icon_path = new moodle_url('/mod/quiz/accessrule/exproctor/pix/bin.png');
-echo "<style> .quiz-img-div{position:relative; display: inline-block;}.quiz-img-div:hover:after{content:'';position:absolute;left: 0px;top: 0px;bottom: 0px;width: 100%;background: url('$icon_path') center no-repeat;background-size: 25px;}.quiz-img-div:hover img{opacity: 0.1;} </style>";

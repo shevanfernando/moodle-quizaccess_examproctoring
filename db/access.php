@@ -33,7 +33,8 @@ $capabilities = array(
             'student' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager' => CAP_ALLOW,
+            'proctor' => CAP_ALLOW,
         )
     ),
     'quizaccess/exproctor:get_evidence' => array(
@@ -43,7 +44,8 @@ $capabilities = array(
         'archetypes' => array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager' => CAP_ALLOW,
+            'proctor' => CAP_ALLOW
         )
     ),
     'quizaccess/exproctor:view_report' => array(
@@ -53,7 +55,8 @@ $capabilities = array(
         'archetypes' => array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager' => CAP_ALLOW,
+            'proctor' => CAP_ALLOW
         )
     ),
     'quizaccess/exproctor:delete_evidence' => array(
@@ -63,7 +66,8 @@ $capabilities = array(
         'archetypes' => array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'manager' => CAP_ALLOW,
+            'proctor' => CAP_ALLOW,
         )
     ),
 );
