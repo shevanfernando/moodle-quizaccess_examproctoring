@@ -1,4 +1,4 @@
-# Exam Proctoring #
+# ExProctor - (Exam Proctoring) #
 
 Exam Proctoring is a Moodle plugin that enables remote exam proctoring.
 
@@ -18,7 +18,7 @@ my final year project.
 
 The plugin can be also installed by putting the contents of this directory to
 
-    {your/moodle/dirroot}/mod/quiz/accessrule/examproctoring
+    {your/moodle/dirroot}/mod/quiz/accessrule/exproctor
 
 Afterwards, log in to your Moodle site as an admin and go to _Site administration >
 Notifications_ to complete the installation.
@@ -28,6 +28,9 @@ Alternatively, you can run
     $ php admin/cli/upgrade.php
 
 to complete the installation from the command line.
+
+## Repository for Desktop Application ##
+<https://github.com/shevanfernando/exproctor_desktop_app.git>
 
 ## License ##
 
