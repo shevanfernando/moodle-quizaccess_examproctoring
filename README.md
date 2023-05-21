@@ -1,4 +1,4 @@
-# ExProctor - (Exam Proctoring)#
+# ExProctor - (Exam Proctoring) #
 
 Exam Proctoring is a Moodle plugin that enables remote exam proctoring.
 
