@@ -38,7 +38,7 @@ use quizaccess_exproctor\aws_s3;
  */
 function xmldb_quizaccess_exproctor_uninstall(): string
 {
-    global $DB;
+    global $DB, $CFG;
 
     // Get role id.
     $role = $DB->get_record("role", array(
@@ -65,5 +65,30 @@ function xmldb_quizaccess_exproctor_uninstall(): string
         }
     }
 
+    // Remove plugin files
+    $pluginPath = $CFG->dirroot . '/mod/quiz/accessrule/exproctor';
+    remove_plugin_files($pluginPath);
+
     return 'ExProctor plugin uninstallation completed successfully.';
+}
+
+/**
+ * Helper function to recursively remove ExProctor plugin files and directories.
+ *
+ * @param string $path The path to the plugin directory.
+ */
+function remove_plugin_files(string $path): void
+{
+    $files = scandir($path);
+    foreach ($files as $file) {
+        if ($file !== '.' && $file !== '..') {
+            $filepath = $path . '/' . $file;
+            if (is_dir($filepath)) {
+                remove_plugin_files($filepath);
+                rmdir($filepath);
+            } else {
+                unlink($filepath);
+            }
+        }
+    }
 }
