@@ -36,12 +36,13 @@ use quizaccess_exproctor\aws_s3;
  * @return bool: only returns true
  * @throws moodle_exception
  */
-function xmldb_quizaccess_exproctor_uninstall(): bool {
+function xmldb_quizaccess_exproctor_uninstall(): bool
+{
     global $DB;
 
     // Get role id.
     $role = $DB->get_record("role", array(
-        'shortname' => get_string('proctor:short_name', 'quizaccess_exproctor')
+        $DB->sql_compare_text('shortname') => get_string('proctor:short_name', 'quizaccess_exproctor')
     ));
 
     // Check role empty or not.
@@ -53,7 +54,8 @@ function xmldb_quizaccess_exproctor_uninstall(): bool {
         }
     }
 
-    $record = $DB->get_record("config_plugins", array('plugin' => 'quizaccess_exproctor', 'value' => 'AWS(S3)'));
+    $sql = "SELECT cp.id FROM {config_plugins} AS cp WHERE " . $DB->sql_compare_text('plugin') . " = " . $DB->sql_compare_text(':plugin_name') . " AND " . $DB->sql_compare_text('value') . " = " . $DB->sql_compare_text(':value');
+    $record = $DB->record_exists_sql($sql, array("plugin_name" => "quizaccess_exproctor", "value" => "AWS(S3)"));
 
     if (!empty($record)) {
         // Delete all the S3 bucket.
