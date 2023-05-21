@@ -33,10 +33,10 @@ use quizaccess_exproctor\aws_s3;
 /**
  * Custom uninstallation procedure
  *
- * @return bool: only returns true
+ * @return string
  * @throws moodle_exception
  */
-function xmldb_quizaccess_exproctor_uninstall(): bool
+function xmldb_quizaccess_exproctor_uninstall(): string
 {
     global $DB;
 
@@ -65,5 +65,5 @@ function xmldb_quizaccess_exproctor_uninstall(): bool
         }
     }
 
-    return true;
+    return 'ExProctor plugin uninstallation completed successfully.';
 }
